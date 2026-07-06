@@ -1,0 +1,10 @@
+﻿# OS files
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+
+# Backups
+*_OLD_BACKUP/
+*.bak
