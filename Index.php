@@ -1,7 +1,6 @@
-<?php
+﻿<?php
 require_once "config.php";
 
-// Kailangan naka-login bilang student bago makapag-book
 if (!isset($_SESSION["student_id"])) {
     header("Location: student-auth.php");
     exit;
