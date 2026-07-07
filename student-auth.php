@@ -63,6 +63,7 @@ $activeClass = ($panel === 'signup') ? ' active' : '';
             </div>
         </div>
     </div>
+    <p style="text-align:center; margin-top:16px; font-size:13px;"><a href="registrar-login.php" style="color:#6b7d74; text-decoration:none;">For Registrar &rarr;</a></p>
     <script src="js/signup.js"></script>
 </body>
 </html>

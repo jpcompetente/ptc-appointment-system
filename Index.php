@@ -75,6 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <span id="scroll" class="item">Get an Appointment</span>
                 <a href="student-dashboard.php" class="item" style="text-decoration:none;">My Appointments</a>
                 <a href="logout.php" class="item" style="text-decoration:none;">Logout</a>
+
             </div>
             <button class="toggler">
                 <i class='bx bx-menu'></i>
