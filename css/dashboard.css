@@ -438,3 +438,65 @@ main{
     content: none !important;
 }
 
+
+/* ===== Zebra Striping ===== */
+#appointments-table tbody tr:nth-child(even){
+    background-color: #fafbfa;
+}
+#appointments-table tbody tr:nth-child(even):hover{
+    background-color: rgba(32,94,68,0.05);
+}
+
+/* ===== Full Name Avatar ===== */
+.name-cell{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.name-avatar{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--ptc-green);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ===== Status Filter Bar ===== */
+.filter-bar{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 4px 16px;
+    flex-wrap: wrap;
+}
+.filter-select{
+    border: 1.5px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    background: #fff;
+    cursor: pointer;
+}
+.filter-select:focus{
+    outline: none;
+    border-color: var(--ptc-green);
+}
+
+/* ===== Settings Error Message ===== */
+.settings-error{
+    background-color: #fdeaea;
+    border: 1px solid #f0b8b8;
+    color: #b33a3a;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin: 0 20px 16px;
+    max-width: 420px;
+}

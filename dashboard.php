@@ -34,6 +34,8 @@ $max_per_day = $setting_row ? $setting_row['setting_value'] : 10;
 $setting_stmt->close();
 
 $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong setting." : "";
+$password_saved_message = isset($_GET['password_saved']) ? "Matagumpay na na-update ang password." : "";
+$password_error_message = isset($_GET['password_error']) ? $_GET['password_error'] : "";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -348,7 +350,16 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
             <div id="appointments" class="content" style="display:none;">
                 <h2 class="text-2xl font-extrabold text-gray-900 mb-1 px-1">Appointments</h2>
                 <p class="text-sm text-gray-500 px-1 mb-4">Manage and review all submitted appointment requests.</p>
-                <button class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 border border-gray-200 rounded-full px-4 py-2 mb-4 mx-1 hover:bg-white hover:border-ptc-green hover:text-ptc-green transition" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
+                <div class="filter-bar">
+                    <select id="statusFilterSelect" class="filter-select" onchange="filterByStatus(this.value)">
+                        <option value="">All Statuses</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 border border-gray-200 rounded-full px-4 py-2 mx-1 hover:bg-white hover:border-ptc-green hover:text-ptc-green transition" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
+                </div>
                 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm mx-1 p-5 overflow-x-auto">
                     <table id="appointments-table" class="table table-striped w-full">
                         <thead>
@@ -371,7 +382,7 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                             if ($app_result->num_rows > 0) {
                                 while ($row = $app_result->fetch_assoc()) {
                                     echo "<tr>";
-                                    echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                                    $initial = strtoupper(substr(trim($row['name']), 0, 1)); echo "<td><div class='name-cell'><div class='name-avatar'>" . htmlspecialchars($initial) . "</div>" . htmlspecialchars($row['name']) . "</div></td>";
                                     echo "<td>" . htmlspecialchars($row['email']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['phone']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['appointment_date']) . "</td>";
@@ -408,6 +419,23 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                     <label for="max_appointments_per_day">Max Appointments Per Day</label>
                     <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" value="<?= htmlspecialchars($max_per_day) ?>" required>
                     <button type="submit">Save Setting</button>
+                </form>
+
+                <p class="section-label">Account Security</p>
+                <?php if ($password_saved_message): ?>
+                    <div class="settings-success"><?= htmlspecialchars($password_saved_message) ?></div>
+                <?php endif; ?>
+                <?php if ($password_error_message): ?>
+                    <div class="settings-error"><?= htmlspecialchars($password_error_message) ?></div>
+                <?php endif; ?>
+                <form class="settings-form" method="POST" action="change-password.php">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" name="current_password" id="current_password" required>
+                    <label for="new_password">New Password</label>
+                    <input type="password" name="new_password" id="new_password" minlength="8" required>
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" name="confirm_password" id="confirm_password" minlength="8" required>
+                    <button type="submit">Change Password</button>
                 </form>
             </div>
         </main>
