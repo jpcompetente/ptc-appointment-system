@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once "config.php";
 
 if (!isset($_SESSION['admin_id'])) {
@@ -33,9 +33,22 @@ $setting_row = $setting_stmt->get_result()->fetch_assoc();
 $max_per_day = $setting_row ? $setting_row['setting_value'] : 10;
 $setting_stmt->close();
 
-$settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong setting." : "";
+$settings_message = isset($_GET['settings_saved']) ? "The new setting has been saved." : "";
 $password_saved_message = isset($_GET['password_saved']) ? "Matagumpay na na-update ang password." : "";
 $password_error_message = isset($_GET['password_error']) ? $_GET['password_error'] : "";
+
+$allowed_days_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'allowed_days'");
+$allowed_days_stmt->execute();
+$allowed_days_row = $allowed_days_stmt->get_result()->fetch_assoc();
+$allowed_days_raw = $allowed_days_row ? $allowed_days_row['setting_value'] : 'Mon,Tue,Wed,Thu,Fri';
+$allowed_days_arr = array_filter(array_map('trim', explode(',', $allowed_days_raw)));
+$allowed_days_stmt->close();
+
+$blocked_dates_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'blocked_dates'");
+$blocked_dates_stmt->execute();
+$blocked_dates_row = $blocked_dates_stmt->get_result()->fetch_assoc();
+$blocked_dates_raw = $blocked_dates_row ? $blocked_dates_row['setting_value'] : '';
+$blocked_dates_stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -190,46 +203,187 @@ $password_error_message = isset($_GET['password_error']) ? $_GET['password_error
             box-shadow: 0 2px 10px rgba(15, 61, 42, 0.06);
             overflow-x: auto;
         }
-        .settings-form {
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            margin: 0 20px 20px;
+            align-items: start;
+        }
+        .settings-card {
             background: #fff;
             border: 1px solid var(--border-soft, #e1e6e3);
-            border-radius: 14px;
-            padding: 26px;
-            max-width: 420px;
-            margin: 0 20px;
+            border-radius: 16px;
+            padding: 24px;
             box-shadow: 0 2px 10px rgba(15, 61, 42, 0.06);
+            transition: box-shadow 0.15s ease;
         }
-        .settings-form label {
+        .settings-card:hover {
+            box-shadow: 0 8px 22px rgba(15, 61, 42, 0.1);
+        }
+        .settings-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .settings-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .settings-card-header h3 {
+            font-size: 15.5px;
+            font-weight: 700;
+            color: var(--text-dark, #1a2b23);
+            margin-bottom: 3px;
+        }
+        .settings-card-header p {
+            font-size: 12.5px;
+            color: var(--text-muted, #6b7d74);
+            line-height: 1.4;
+        }
+        .settings-card label {
             display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-dark, #1a2b23);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
         }
-        .settings-form input {
+        .settings-card input[type="text"],
+        .settings-card input[type="number"],
+        .settings-card input[type="password"] {
             width: 100%;
-            padding: 10px 12px;
+            padding: 11px 14px;
             border: 1.5px solid var(--border-soft, #e1e6e3);
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
-            margin-bottom: 14px;
+            margin-bottom: 6px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: #fafbfa;
         }
-        .settings-form button {
+        .settings-card input:focus {
+            outline: none;
+            border-color: var(--ptc-green, #205e44);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(32,94,68,0.1);
+        }
+        .input-hint {
+            display: block;
+            font-size: 11.5px;
+            color: var(--text-muted, #6b7d74);
+            margin-bottom: 16px;
+        }
+        .btn-primary {
             background-color: var(--ptc-green, #205e44);
             color: #fff;
             border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
             font-weight: 600;
+            font-size: 13.5px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 8px;
+            transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--ptc-green-dark, #0f3d2a);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 61, 42, 0.25);
+        }
+        .day-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .day-pill {
+            position: relative;
+            cursor: pointer;
+            margin: 0 !important;
+            text-transform: none !important;
+            font-weight: 500 !important;
+        }
+        .day-pill input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .day-pill span {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1.5px solid var(--border-soft, #e1e6e3);
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-muted, #6b7d74);
+            background: #fafbfa;
+            transition: all 0.15s ease;
+        }
+        .day-pill input:checked + span {
+            background: var(--ptc-green, #205e44);
+            border-color: var(--ptc-green, #205e44);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(32,94,68,0.25);
+        }
+        .day-pill:hover span {
+            border-color: var(--ptc-green, #205e44);
+        }
+        .input-icon-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .input-icon-wrapper input {
+            margin-bottom: 0 !important;
+            padding-right: 42px !important;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-muted, #6b7d74);
+            cursor: pointer;
+        }
+        .toggle-password:hover {
+            color: var(--ptc-green, #205e44);
         }
         .settings-success {
             background-color: #e6f4ea;
             border: 1px solid #b7dfc0;
             color: #1e6b34;
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin: 0 20px 16px;
-            max-width: 420px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            margin: 0 20px 18px;
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 100%;
+        }
+        .settings-error {
+            background-color: #fdeaea;
+            border: 1px solid #f0b8b8;
+            color: #b33a3a;
+            padding: 11px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
 </head>
@@ -412,31 +566,91 @@ $password_error_message = isset($_GET['password_error']) ? $_GET['password_error
             </div>
             <div id="settings" class="content" style="display:none;">
                 <h2>Settings</h2>
+                <p class="page-subtext">Manage system-wide appointment rules and your account security.</p>
                 <?php if ($settings_message): ?>
-                    <div class="settings-success"><?= htmlspecialchars($settings_message) ?></div>
+                    <div class="settings-success"><i class='bx bx-check-circle'></i> <?= htmlspecialchars($settings_message) ?></div>
                 <?php endif; ?>
-                <form class="settings-form" method="POST" action="save-settings.php">
-                    <label for="max_appointments_per_day">Max Appointments Per Day</label>
-                    <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" value="<?= htmlspecialchars($max_per_day) ?>" required>
-                    <button type="submit">Save Setting</button>
-                </form>
 
-                <p class="section-label">Account Security</p>
-                <?php if ($password_saved_message): ?>
-                    <div class="settings-success"><?= htmlspecialchars($password_saved_message) ?></div>
-                <?php endif; ?>
-                <?php if ($password_error_message): ?>
-                    <div class="settings-error"><?= htmlspecialchars($password_error_message) ?></div>
-                <?php endif; ?>
-                <form class="settings-form" method="POST" action="change-password.php">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" name="current_password" id="current_password" required>
-                    <label for="new_password">New Password</label>
-                    <input type="password" name="new_password" id="new_password" minlength="8" required>
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" name="confirm_password" id="confirm_password" minlength="8" required>
-                    <button type="submit">Change Password</button>
-                </form>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon" style="background:rgba(32,94,68,0.12); color:#205e44;"><i class='bx bx-calendar-check'></i></div>
+                            <div>
+                                <h3>Max Appointments Per Day</h3>
+                                <p>Set the maximum number of appointments that can be booked in a single day.</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="save-settings.php">
+                            <label for="max_appointments_per_day">Maximum Slots</label>
+                            <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" value="<?= htmlspecialchars($max_per_day) ?>" required>
+                            <br>
+                            <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Save Setting</button>
+                        </form>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon" style="background:rgba(33,150,243,0.12); color:#2196F3;"><i class='bx bx-calendar-week'></i></div>
+                            <div>
+                                <h3>Booking Restrictions</h3>
+                                <p>Choose which days are open for booking and block out holidays.</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="save-settings.php">
+                            <label>Allowed Days for Appointments</label>
+                            <div class="day-pills">
+                                <?php
+                                $days_full = ['Mon' => 'Monday', 'Tue' => 'Tuesday', 'Wed' => 'Wednesday', 'Thu' => 'Thursday', 'Fri' => 'Friday', 'Sat' => 'Saturday', 'Sun' => 'Sunday'];
+                                foreach ($days_full as $abbr => $full):
+                                    $checked = in_array($abbr, $allowed_days_arr) ? 'checked' : '';
+                                ?>
+                                    <label class="day-pill">
+                                        <input type="checkbox" name="allowed_days[]" value="<?= $abbr ?>" <?= $checked ?>>
+                                        <span><?= substr($full, 0, 3) ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                            <label for="blocked_dates">Blocked Dates (Holidays)</label>
+                            <input type="text" name="blocked_dates" id="blocked_dates" value="<?= htmlspecialchars($blocked_dates_raw) ?>" placeholder="2026-12-25, 2026-01-01">
+                            <span class="input-hint">Comma-separated, format YYYY-MM-DD</span>
+                            <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Save Booking Restrictions</button>
+                        </form>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="settings-card-icon" style="background:rgba(214,69,69,0.12); color:#d64545;"><i class='bx bx-shield-quarter'></i></div>
+                            <div>
+                                <h3>Account Security</h3>
+                                <p>Update the password for your admin account.</p>
+                            </div>
+                        </div>
+                        <?php if ($password_saved_message): ?>
+                            <div class="settings-success"><i class='bx bx-check-circle'></i> <?= htmlspecialchars($password_saved_message) ?></div>
+                        <?php endif; ?>
+                        <?php if ($password_error_message): ?>
+                            <div class="settings-error"><i class='bx bx-error-circle'></i> <?= htmlspecialchars($password_error_message) ?></div>
+                        <?php endif; ?>
+                        <form method="POST" action="change-password.php">
+                            <label for="current_password">Current Password</label>
+                            <div class="input-icon-wrapper">
+                                <input type="password" name="current_password" id="current_password" required>
+                                <i class='bx bx-hide toggle-password' onclick="togglePassword('current_password', this)"></i>
+                            </div>
+                            <label for="new_password">New Password</label>
+                            <div class="input-icon-wrapper">
+                                <input type="password" name="new_password" id="new_password" minlength="8" required>
+                                <i class='bx bx-hide toggle-password' onclick="togglePassword('new_password', this)"></i>
+                            </div>
+                            <label for="confirm_password">Confirm New Password</label>
+                            <div class="input-icon-wrapper">
+                                <input type="password" name="confirm_password" id="confirm_password" minlength="8" required>
+                                <i class='bx bx-hide toggle-password' onclick="togglePassword('confirm_password', this)"></i>
+                            </div>
+                            <button type="submit" class="btn-primary"><i class='bx bx-lock-alt'></i> Change Password</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -496,6 +710,19 @@ $password_error_message = isset($_GET['password_error']) ? $_GET['password_error
 
         function logout() {
             window.location.href = 'logout.php?type=admin';
+        }
+
+        function togglePassword(id, icon) {
+            var input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bx-hide');
+                icon.classList.add('bx-show');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bx-show');
+                icon.classList.add('bx-hide');
+            }
         }
 
         function filterByStatus(status) {
