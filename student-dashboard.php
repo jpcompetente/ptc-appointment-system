@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 require_once "config.php";
 
 if (!isset($_SESSION["student_id"])) {
-    header("Location: signin.php");
+    header("Location: student-auth.php");
     exit;
 }
 
@@ -20,6 +20,24 @@ $appointments = $stmt->get_result();
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/dashboard.css">
     <title>My Appointments | PTC Web System</title>
+    <style>
+        .status-badge{ padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #fff; display: inline-block; }
+        .status-pending{ background-color: #FFC107; color: #1a2b23; }
+        .status-approved{ background-color: #2196F3; }
+        .status-rejected{ background-color: #d64545; }
+        .status-cancelled{ background-color: #9e9e9e; }
+        .cancel-btn{
+            background-color: #d64545;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .cancel-btn:hover{ opacity: 0.85; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -45,14 +63,15 @@ $appointments = $stmt->get_result();
                                 <th>Appointment Date</th>
                                 <th>Status</th>
                                 <th>Message</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if ($appointments->num_rows === 0): ?>
-                            <tr><td colspan="4">Wala ka pang appointment. <a href="Index.php">Mag-book na</a>.</td></tr>
+                            <tr><td colspan="5">Wala ka pang appointment. <a href="Index.php">Mag-book na</a>.</td></tr>
                             <?php endif; ?>
                             <?php while ($row = $appointments->fetch_assoc()): ?>
-                            <tr>
+                            <tr id="row-<?= $row['id'] ?>">
                                 <td>
                                     <?= htmlspecialchars(strtoupper($row["document_type"])) ?>
                                     <?php if (!empty($row["other_document"])): ?>
@@ -60,8 +79,15 @@ $appointments = $stmt->get_result();
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($row["appointment_date"]) ?></td>
-                                <td><?= htmlspecialchars(ucfirst($row["status"])) ?></td>
+                                <td><span class="status-badge status-<?= htmlspecialchars($row["status"]) ?>"><?= htmlspecialchars(ucfirst($row["status"])) ?></span></td>
                                 <td><?= htmlspecialchars($row["message"]) ?></td>
+                                <td>
+                                    <?php if ($row["status"] === "pending"): ?>
+                                        <button class="cancel-btn" onclick="cancelAppointment(<?= $row['id'] ?>)">Cancel</button>
+                                    <?php else: ?>
+                                        &mdash;
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -70,5 +96,28 @@ $appointments = $stmt->get_result();
             </div>
         </main>
     </div>
+
+    <script>
+        function cancelAppointment(id) {
+            if (!confirm("Sigurado ka bang i-cancel ang appointment na ito?")) {
+                return;
+            }
+            fetch("cancel-appointment.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "id=" + encodeURIComponent(id)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(() => {
+                alert("May error sa pag-cancel. Subukan ulit.");
+            });
+        }
+    </script>
 </body>
 </html>

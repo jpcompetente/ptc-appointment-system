@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once "config.php";
 
 // Kailangan naka-login bilang student bago makapag-book

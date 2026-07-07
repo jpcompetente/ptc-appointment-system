@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once "config.php";
 
 if (!isset($_SESSION['admin_id'])) {
@@ -158,10 +158,14 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                                 echo "<td>" . htmlspecialchars($row['status']) . "</td>";
                                 echo "<td>" . htmlspecialchars($row['reviewed_by_name'] ?? '-') . "</td>";
                                 echo "<td>" . htmlspecialchars($row['reviewed_at'] ?? '-') . "</td>";
-                                echo "<td>
-                                        <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"approved\")'>Approve</button>
-                                        <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"rejected\")'>Reject</button>
-                                      </td>";
+                                if ($row['status'] === 'pending') {
+                                    echo "<td>
+                                            <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"approved\")'>Approve</button>
+                                            <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"rejected\")'>Reject</button>
+                                          </td>";
+                                } else {
+                                    echo "<td>&mdash;</td>";
+                                }
                                 echo "</tr>";
                             }
                         } else {
