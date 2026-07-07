@@ -22,7 +22,7 @@ body{
     color: var(--text-dark);
 }
 
-.container{
+.app-shell{
     max-width: 100%;
     padding: 0;
 }
@@ -243,3 +243,198 @@ main{
         font-size: 16px;
     }
 }
+
+/* ===== Table & Status Badge Modernization ===== */
+.status-badge{
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
+}
+.status-approved{
+    background: rgba(33,150,243,0.12);
+    color: #2196F3;
+}
+.status-pending{
+    background: rgba(255,193,7,0.18);
+    color: #b98900;
+}
+.status-rejected{
+    background: rgba(214,69,69,0.12);
+    color: #d64545;
+}
+.status-cancelled{
+    background: rgba(107,125,116,0.15);
+    color: var(--text-muted);
+}
+
+#appointments-table thead th{
+    background: var(--bg-soft);
+    color: var(--text-dark);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--border-soft);
+}
+#appointments-table tbody td{
+    padding: 12px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border-soft);
+}
+#appointments-table tbody tr{
+    transition: background-color 0.15s ease;
+}
+#appointments-table tbody tr:hover{
+    background-color: rgba(32,94,68,0.04);
+}
+
+.action-button{
+    background-color: var(--ptc-green);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.action-button:hover{
+    background-color: var(--ptc-green-dark);
+    transform: translateY(-1px);
+}
+
+.dataTables_wrapper .dataTables_filter input{
+    border: 1.5px solid var(--border-soft);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    margin-left: 8px;
+}
+.dataTables_wrapper .dataTables_length select{
+    border: 1.5px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin: 0 6px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+    border-radius: 999px !important;
+    padding: 6px 14px !important;
+    margin-left: 4px !important;
+    border: 1px solid var(--border-soft) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+    background: var(--ptc-green) !important;
+    color: #fff !important;
+    border-color: var(--ptc-green) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+    background: var(--ptc-green-light) !important;
+    color: #fff !important;
+    border-color: var(--ptc-green-light) !important;
+}
+
+/* ===== Fix DataTables Sort Icons (v2 - clean rebuild) ===== */
+#appointments-table.dataTable thead th.sorting:before,
+#appointments-table.dataTable thead th.sorting:after,
+#appointments-table.dataTable thead th.sorting_asc:before,
+#appointments-table.dataTable thead th.sorting_asc:after,
+#appointments-table.dataTable thead th.sorting_desc:before,
+#appointments-table.dataTable thead th.sorting_desc:after{
+    display: none !important;
+    content: none !important;
+}
+#appointments-table.dataTable thead th.sorting,
+#appointments-table.dataTable thead th.sorting_asc,
+#appointments-table.dataTable thead th.sorting_desc{
+    position: relative;
+    padding-right: 20px !important;
+}
+#appointments-table.dataTable thead th.sorting::after{
+    content: '\21C5' !important;
+    display: inline-block !important;
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 11px !important;
+    opacity: 0.4;
+}
+#appointments-table.dataTable thead th.sorting_asc::after{
+    content: '\25B2' !important;
+    display: inline-block !important;
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 10px !important;
+    color: var(--ptc-green) !important;
+}
+#appointments-table.dataTable thead th.sorting_desc::after{
+    content: '\25BC' !important;
+    display: inline-block !important;
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 10px !important;
+    color: var(--ptc-green) !important;
+}
+
+/* ===== Fix DataTables Sort Icons (v4 - CSS triangle, no font dependency) ===== */
+#appointments-table.dataTable thead th.sorting,
+#appointments-table.dataTable thead th.sorting_asc,
+#appointments-table.dataTable thead th.sorting_desc,
+#appointments-table.dataTable thead th.sorting_asc_disabled,
+#appointments-table.dataTable thead th.sorting_desc_disabled{
+    background-image: none !important;
+    background: none !important;
+    padding-right: 18px !important;
+    position: relative;
+}
+#appointments-table.dataTable thead th.sorting::before,
+#appointments-table.dataTable thead th.sorting::after,
+#appointments-table.dataTable thead th.sorting_asc::before,
+#appointments-table.dataTable thead th.sorting_asc::after,
+#appointments-table.dataTable thead th.sorting_desc::before,
+#appointments-table.dataTable thead th.sorting_desc::after{
+    content: '' !important;
+    position: absolute !important;
+    right: 6px !important;
+    left: auto !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 4px solid transparent !important;
+    border-right: 4px solid transparent !important;
+}
+/* default (unsorted) state: faint up+down pair */
+#appointments-table.dataTable thead th.sorting::before{
+    border-bottom: 5px solid #c3ccc7 !important;
+    top: 12px !important;
+}
+#appointments-table.dataTable thead th.sorting::after{
+    border-top: 5px solid #c3ccc7 !important;
+    top: 20px !important;
+}
+/* ascending: solid up arrow only */
+#appointments-table.dataTable thead th.sorting_asc::before{
+    border-bottom: 6px solid var(--ptc-green) !important;
+    top: 15px !important;
+}
+#appointments-table.dataTable thead th.sorting_asc::after{
+    content: none !important;
+}
+/* descending: solid down arrow only */
+#appointments-table.dataTable thead th.sorting_desc::after{
+    border-top: 6px solid var(--ptc-green) !important;
+    top: 15px !important;
+}
+#appointments-table.dataTable thead th.sorting_desc::before{
+    content: none !important;
+}
+

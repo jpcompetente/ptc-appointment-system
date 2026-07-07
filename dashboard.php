@@ -40,8 +40,25 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false
+            },
+            theme: {
+                extend: {
+                    colors: {
+                        'ptc-dark': '#0f3d2a',
+                        'ptc-green': '#205e44',
+                        'ptc-light': '#2e7d5b',
+                    }
+                }
+            }
+        }
+    </script>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
     <title>Appointments Dashboard</title>
     <style>
@@ -215,7 +232,7 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-shell">
         <header>
             <div class="logo-container">
                 <img src="images/logo-ptc 2.png" alt="Logo">
@@ -329,10 +346,11 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                 </div>
             </div>
             <div id="appointments" class="content" style="display:none;">
-                <h2>Appointments</h2>
-                <button class="clear-filter-btn" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
-                <div class="table-card">
-                    <table id="appointments-table" class="table table-striped">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-1 px-1">Appointments</h2>
+                <p class="text-sm text-gray-500 px-1 mb-4">Manage and review all submitted appointment requests.</p>
+                <button class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 border border-gray-200 rounded-full px-4 py-2 mb-4 mx-1 hover:bg-white hover:border-ptc-green hover:text-ptc-green transition" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm mx-1 p-5 overflow-x-auto">
+                    <table id="appointments-table" class="table table-striped w-full">
                         <thead>
                             <tr>
                                 <th>Full Name</th>
@@ -360,7 +378,7 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                                     echo "<td>" . htmlspecialchars($row['document_type']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['other_document']) . "</td>";
                                     echo "<td>" . htmlspecialchars($row['message']) . "</td>";
-                                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                    echo "<td><span class='status-badge status-" . htmlspecialchars($row['status']) . "'>" . htmlspecialchars($row['status']) . "</span></td>";
                                     echo "<td>" . htmlspecialchars($row['reviewed_by_name'] ?? '-') . "</td>";
                                     echo "<td>" . htmlspecialchars($row['reviewed_at'] ?? '-') . "</td>";
                                     if ($row['status'] === 'pending') {
