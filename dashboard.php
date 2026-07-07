@@ -222,10 +222,10 @@ $settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong se
                 <h1>Pateros Technological College</h1>
             </div>
             <nav>
-                <button class="nav-button" onclick="showDashboard()">Dashboard</button>
-                <button class="nav-button" onclick="showAppointments()">Appointments</button>
-                <button class="nav-button" onclick="showSettings()">Settings</button>
-                <button class="nav-button" onclick="logout()">Logout</button>
+                <button class="nav-button" onclick="showDashboard()"><i class='bx bx-grid-alt'></i> Dashboard</button>
+                <button class="nav-button" onclick="showAppointments()"><i class='bx bx-calendar-check'></i> Appointments</button>
+                <button class="nav-button" onclick="showSettings()"><i class='bx bx-cog'></i> Settings</button>
+                <button class="nav-button" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
             </nav>
         </header>
         <main>

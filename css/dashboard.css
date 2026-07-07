@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root{
     --ptc-green-dark: #0f3d2a;
@@ -33,7 +33,11 @@ header{
     align-items: center;
     background: linear-gradient(135deg, var(--ptc-green-dark) 0%, var(--ptc-green) 100%);
     color: #fff;
-    padding: 16px 32px;
+    padding: 18px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(15, 61, 42, 0.25);
 }
 
 .logo-container{
@@ -49,6 +53,7 @@ header{
     border-radius: 50%;
     background: #fff;
     padding: 4px;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.18), 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .logo-container h1{
@@ -56,6 +61,7 @@ header{
     font-weight: 700;
     margin: 0;
     letter-spacing: -0.2px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 nav{
@@ -70,16 +76,23 @@ nav{
     padding: 9px 18px;
     cursor: pointer;
     font-size: 13.5px;
-    border-radius: 8px;
+    border-radius: 999px;
     font-weight: 600;
     letter-spacing: 0.2px;
-    transition: background-color 0.2s ease, transform 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.nav-button i{
+    font-size: 15px;
 }
 
 .nav-button:hover{
     background-color: #fff;
     color: var(--ptc-green-dark);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
 main{
