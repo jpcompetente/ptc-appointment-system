@@ -1,41 +1,57 @@
 ﻿<?php
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root'); 
-define('DB_PASSWORD', ''); 
-define('DB_NAME', 'apt_db'); 
-$conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+require_once "config.php";
+
+// Kailangan naka-login bilang student bago makapag-book
+if (!isset($_SESSION["student_id"])) {
+    header("Location: student-auth.php");
+    exit;
 }
-$conn->set_charset("utf8mb4");
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-    $name = $conn->real_escape_string($_POST['name']);
-    $email = $conn->real_escape_string($_POST['email']);
-    $phone = $conn->real_escape_string($_POST['phone']);
-    $date = $conn->real_escape_string($_POST['date']);
-    $docs = $conn->real_escape_string($_POST['docs']);
-    $otherDoc = isset($_POST['otherDoc']) ? $conn->real_escape_string($_POST['otherDoc']) : '';
-    $message = $conn->real_escape_string($_POST['message']);
-    
-    $stmt = $conn->prepare("INSERT INTO appointments (name, email, phone, appointment_date, document_type, other_document, message) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+    $user_id = $_SESSION["student_id"];
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $date = $_POST['date'];
+    $docs = $_POST['docs'];
+    $otherDoc = isset($_POST['otherDoc']) ? $_POST['otherDoc'] : '';
+    $message = $_POST['message'];
+
+    // Check slot limit for the selected date
+    $limit_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'max_appointments_per_day'");
+    $limit_stmt->execute();
+    $limit_result = $limit_stmt->get_result()->fetch_assoc();
+    $max_per_day = $limit_result ? (int) $limit_result['setting_value'] : 10;
+    $limit_stmt->close();
+
+    $count_stmt = $conn->prepare("SELECT COUNT(*) as total FROM appointments WHERE appointment_date = ? AND status != 'rejected'");
+    $count_stmt->bind_param("s", $date);
+    $count_stmt->execute();
+    $count_result = $count_stmt->get_result()->fetch_assoc();
+    $current_count = (int) $count_result['total'];
+    $count_stmt->close();
+
+    if ($current_count >= $max_per_day) {
+        echo '<script>alert("Puno na ang slots para sa napiling araw. Pumili ng ibang date."); window.location.href = "Index.php";</script>';
+        exit();
+    }
+
+    $stmt = $conn->prepare("INSERT INTO appointments (user_id, name, email, phone, appointment_date, document_type, other_document, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
     if ($stmt === false) {
         die('Could not prepare statement: ' . $conn->error);
     }
-   
-    $stmt->bind_param("sssssss", $name, $email, $phone, $date, $docs, $otherDoc, $message);
+
+    $stmt->bind_param("isssssss", $user_id, $name, $email, $phone, $date, $docs, $otherDoc, $message);
     if ($stmt->execute()) {
-        
-        echo '<script>alert("Appointment submitted successfully!"); window.location.href = "index.php";</script>';
+        echo '<script>alert("Appointment submitted successfully!"); window.location.href = "student-dashboard.php";</script>';
         exit();
     } else {
-        
         echo "Error: " . $stmt->error;
     }
-    
+
     $stmt->close();
 }
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,7 +60,7 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="Index.css?v=2">
+    <link rel="stylesheet" href="css/Index.css?v=2">
     <title>PTC Web System | Appointment &amp; Queuing</title>
 </head>
 
@@ -57,8 +73,9 @@ $conn->close();
             <div class="nav-links">
                 <span class="item selected">Home</span>
                 <span id="scroll" class="item">Get an Appointment</span>
+                <a href="student-dashboard.php" class="item" style="text-decoration:none;">My Appointments</a>
+                <a href="logout.php" class="item" style="text-decoration:none;">Logout</a>
             </div>
-            <button class="registrar-btn" onclick="goToRegistrarPage()">For Registrar</button>
             <button class="toggler">
                 <i class='bx bx-menu'></i>
             </button>
@@ -75,7 +92,7 @@ $conn->close();
                 </p>
                 <div class="info-buttons">
                     <button class="info-btn" id="scrollToBooking">Book an Appointment</button>
-                    
+
                 </div>
             </div>
             <div class="nft-box">
@@ -179,9 +196,6 @@ $conn->close();
         </footer>
 
         <script>
-            function goToRegistrarPage() {
-                window.location.href = "signup.html";
-            }
 
             function showOtherInput() {
                 var select = document.getElementById("docs");
@@ -193,7 +207,6 @@ $conn->close();
                 document.getElementById("booking").scrollIntoView({ behavior: "smooth" });
             });
             document.getElementById("scrollToBooking").addEventListener("click", function () {
-                document.getElementById("booking").scrollIntoView({ behavior: "smooth" });
             });
 
             document.getElementById("year").textContent = new Date().getFullYear();
@@ -204,3 +217,7 @@ $conn->close();
 </body>
 
 </html>
+
+
+
+

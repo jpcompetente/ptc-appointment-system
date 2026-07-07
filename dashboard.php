@@ -1,20 +1,10 @@
 ﻿<?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: signin.php");
+require_once "config.php";
+
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: registrar-login.php");
     exit();
 }
-
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'apt_db');
-
-$conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-$conn->set_charset("utf8mb4");
 
 $summary_sql = "SELECT
                 COUNT(*) as total_appointments,
@@ -27,10 +17,19 @@ $summary_sql = "SELECT
 $summary_result = $conn->query($summary_sql);
 $summary_data = $summary_result->fetch_assoc();
 
-$app_sql = "SELECT id, name, email, phone, appointment_date, document_type, other_document, message, status FROM appointments";
+$app_sql = "SELECT a.id, a.name, a.email, a.phone, a.appointment_date, a.document_type, a.other_document, a.message, a.status, adm.username as reviewed_by_name, a.reviewed_at
+            FROM appointments a
+            LEFT JOIN admins adm ON a.reviewed_by = adm.id
+            ORDER BY a.id DESC";
 $app_result = $conn->query($app_sql);
 
-$conn->close();
+$setting_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'max_appointments_per_day'");
+$setting_stmt->execute();
+$setting_row = $setting_stmt->get_result()->fetch_assoc();
+$max_per_day = $setting_row ? $setting_row['setting_value'] : 10;
+$setting_stmt->close();
+
+$settings_message = isset($_GET['settings_saved']) ? "Naka-save na ang bagong setting." : "";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,6 +45,46 @@ $conn->close();
             font-size: 35px;
             margin-left: 20px;
         }
+        .settings-form {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 420px;
+            box-shadow: 0 2px 10px rgba(15, 61, 42, 0.06);
+        }
+        .settings-form label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .settings-form input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        .settings-form button {
+            background-color: var(--ptc-green);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .settings-success {
+            background-color: #e6f4ea;
+            border: 1px solid #b7dfc0;
+            color: #1e6b34;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            max-width: 420px;
+        }
     </style>
 </head>
 <body>
@@ -58,6 +97,7 @@ $conn->close();
             <nav>
                 <button class="nav-button" onclick="showDashboard()">Dashboard</button>
                 <button class="nav-button" onclick="showAppointments()">Appointments</button>
+                <button class="nav-button" onclick="showSettings()">Settings</button>
                 <button class="nav-button" onclick="logout()">Logout</button>
             </nav>
         </header>
@@ -98,6 +138,8 @@ $conn->close();
                             <th>Other Document</th>
                             <th>Message</th>
                             <th>Status</th>
+                            <th>Reviewed By</th>
+                            <th>Reviewed At</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -114,6 +156,8 @@ $conn->close();
                                 echo "<td>" . htmlspecialchars($row['other_document']) . "</td>";
                                 echo "<td>" . htmlspecialchars($row['message']) . "</td>";
                                 echo "<td>" . htmlspecialchars($row['status']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['reviewed_by_name'] ?? '-') . "</td>";
+                                echo "<td>" . htmlspecialchars($row['reviewed_at'] ?? '-') . "</td>";
                                 echo "<td>
                                         <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"approved\")'>Approve</button>
                                         <button class='action-button' onclick='updateStatus(" . $row['id'] . ", \"rejected\")'>Reject</button>
@@ -121,11 +165,22 @@ $conn->close();
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='9'>No appointments found.</td></tr>";
+                            echo "<tr><td colspan='11'>No appointments found.</td></tr>";
                         }
                         ?>
                     </tbody>
                 </table>
+            </div>
+            <div id="settings" class="content" style="display:none;">
+                <h2>SETTINGS</h2>
+                <?php if ($settings_message): ?>
+                    <div class="settings-success"><?= htmlspecialchars($settings_message) ?></div>
+                <?php endif; ?>
+                <form class="settings-form" method="POST" action="save-settings.php">
+                    <label for="max_appointments_per_day">Max Appointments Per Day</label>
+                    <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" value="<?= htmlspecialchars($max_per_day) ?>" required>
+                    <button type="submit">Save Setting</button>
+                </form>
             </div>
         </main>
     </div>
@@ -140,15 +195,23 @@ $conn->close();
         function showDashboard() {
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('appointments').style.display = 'none';
+            document.getElementById('settings').style.display = 'none';
         }
 
         function showAppointments() {
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('appointments').style.display = 'block';
+            document.getElementById('settings').style.display = 'none';
+        }
+
+        function showSettings() {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('appointments').style.display = 'none';
+            document.getElementById('settings').style.display = 'block';
         }
 
         function logout() {
-            window.location.href = 'logout.php';
+            window.location.href = 'logout.php?type=admin';
         }
 
         function updateStatus(id, status) {
@@ -156,11 +219,15 @@ $conn->close();
                 url: 'update_status.php',
                 type: 'POST',
                 data: { id: id, status: status },
+                dataType: 'json',
                 success: function(response) {
-                    alert(response);
-                    location.reload();
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Error updating status');
+                    }
                 },
-                error: function(error) {
+                error: function() {
                     alert('Error updating status');
                 }
             });

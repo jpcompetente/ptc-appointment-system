@@ -1,37 +1,33 @@
-<?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Content-Type: application/json");
-    http_response_code(401);
-    echo "Unauthorized";
-    exit();
+﻿<?php
+require_once "config.php";
+
+header("Content-Type: application/json");
+
+if (!isset($_SESSION["admin_id"])) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Unauthorized."]);
+    exit;
 }
 
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'apt_db');
+$id = isset($_POST["id"]) ? (int) $_POST["id"] : 0;
+$status = isset($_POST["status"]) ? strtolower(trim($_POST["status"])) : "";
+$admin_id = $_SESSION["admin_id"];
 
-$conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$allowed_statuses = ["pending", "approved", "rejected"];
+
+if ($id <= 0 || !in_array($status, $allowed_statuses, true)) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Invalid input."]);
+    exit;
 }
-$conn->set_charset("utf8mb4");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id'];
-    $status = $_POST['status'];
+$stmt = $conn->prepare("UPDATE appointments SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?");
+$stmt->bind_param("sii", $status, $admin_id, $id);
 
-    $sql = "UPDATE appointments SET status = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('si', $status, $id);
-
-    if ($stmt->execute()) {
-        echo "Appointment status updated successfully.";
-    } else {
-        echo "Error updating appointment status: " . $conn->error;
-    }
-    $stmt->close();
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Status updated."]);
+} else {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Database error."]);
 }
-$conn->close();
-?>
+$stmt->close();
