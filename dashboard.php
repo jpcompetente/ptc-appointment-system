@@ -385,6 +385,102 @@ $blocked_dates_stmt->close();
             align-items: center;
             gap: 8px;
         }
+        .date-range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .date-range-input {
+            padding: 9px 10px !important;
+            border: 1.5px solid var(--border-soft, #e1e6e3);
+            border-radius: 8px;
+            font-size: 13px;
+            flex: 1;
+            min-width: 130px;
+            margin-bottom: 0 !important;
+        }
+        .date-range-sep {
+            font-size: 12.5px;
+            color: var(--text-muted, #6b7d74);
+            font-weight: 600;
+        }
+        .btn-add-date {
+            background-color: var(--ptc-green, #205e44);
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: background-color 0.15s ease;
+        }
+        .btn-add-date:hover {
+            background-color: var(--ptc-green-dark, #0f3d2a);
+        }
+        .blocked-dates-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .date-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(214,69,69,0.08);
+            border: 1px solid rgba(214,69,69,0.25);
+            color: #b33a3a;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .date-chip i {
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .date-chip i:hover {
+            color: #7a1f1f;
+        }
+        .dashboard-hero-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--ptc-green-dark, #0f3d2a) 0%, var(--ptc-green, #205e44) 100%);
+            border-radius: 16px;
+            padding: 22px 26px;
+            margin: 0 20px 24px;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(15, 61, 42, 0.18);
+        }
+        .dashboard-hero-banner h2 {
+            color: #fff !important;
+        }
+        .dashboard-hero-banner .page-subtext {
+            color: rgba(255,255,255,0.75) !important;
+        }
+        .hero-date-badge {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 9px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .blocked-dates-card {
+            padding: 20px !important;
+        }
     </style>
 </head>
 <body>
@@ -403,8 +499,16 @@ $blocked_dates_stmt->close();
         </header>
         <main>
             <div id="dashboard" class="content">
-                <h2>Dashboard</h2>
-                <p class="page-subtext">Overview of all appointments. Click any card to see the details.</p>
+                <div class="dashboard-hero-banner">
+                    <div>
+                        <h2 style="margin:0 0 4px;">Dashboard</h2>
+                        <p class="page-subtext" style="margin:0;">Overview of all appointments. Click any card to see the details.</p>
+                    </div>
+                    <div class="hero-date-badge">
+                        <i class='bx bx-calendar'></i>
+                        <span><?php echo date('F j, Y'); ?></span>
+                    </div>
+                </div>
 
                 <p class="section-label">Status Overview</p>
                 <div class="stats-grid">
@@ -491,19 +595,25 @@ $blocked_dates_stmt->close();
                 <div class="charts-row">
                     <div class="chart-card">
                         <h3>Status Breakdown</h3>
-                        <p class="chart-sub">Distribution ng appointments per status</p>
+                        <p class="chart-sub">Distribution of appointments per status</p>
                         <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
                     </div>
                     <div class="chart-card">
                         <h3>Document Types</h3>
-                        <p class="chart-sub">Pinaka-hinihinging documents</p>
+                        <p class="chart-sub">Most requested documents</p>
                         <div class="chart-wrap"><canvas id="docChart"></canvas></div>
                     </div>
                 </div>
+
+                <p class="section-label">Blocked Dates</p>
+                <div class="table-card blocked-dates-card">
+                    <div class="blocked-dates-chips" id="dashboard_blocked_dates_chips" style="margin-bottom:0;"></div>
+                    <p class="page-subtext" id="no_blocked_dates_msg" style="display:none; margin:0;">No blocked dates set. You can add holidays in Settings &rarr; Booking Restrictions.</p>
+                </div>
             </div>
             <div id="appointments" class="content" style="display:none;">
-                <h2 class="text-2xl font-extrabold text-gray-900 mb-1 px-1">Appointments</h2>
-                <p class="text-sm text-gray-500 px-1 mb-4">Manage and review all submitted appointment requests.</p>
+                <h2>Appointments</h2>
+                <p class="page-subtext">Manage and review all submitted appointment requests.</p>
                 <div class="filter-bar">
                     <select id="statusFilterSelect" class="filter-select" onchange="filterByStatus(this.value)">
                         <option value="">All Statuses</option>
@@ -512,7 +622,7 @@ $blocked_dates_stmt->close();
                         <option value="rejected">Rejected</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
-                    <button class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 border border-gray-200 rounded-full px-4 py-2 mx-1 hover:bg-white hover:border-ptc-green hover:text-ptc-green transition" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
+                    <button class="clear-filter-btn" onclick="clearFilters()"><i class='bx bx-x'></i> Clear Filters</button>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm mx-1 p-5 overflow-x-auto">
                     <table id="appointments-table" class="table table-striped w-full">
@@ -610,9 +720,25 @@ $blocked_dates_stmt->close();
                                     </label>
                                 <?php endforeach; ?>
                             </div>
-                            <label for="blocked_dates">Blocked Dates (Holidays)</label>
-                            <input type="text" name="blocked_dates" id="blocked_dates" value="<?= htmlspecialchars($blocked_dates_raw) ?>" placeholder="2026-12-25, 2026-01-01">
-                            <span class="input-hint">Comma-separated, format YYYY-MM-DD</span>
+                            <label>Blocked Dates (Holidays)</label>
+
+                            <span class="input-hint" style="margin-bottom:6px; display:block;">Add one specific date:</span>
+                            <div class="date-range-row">
+                                <input type="date" id="blocked_date_single" class="date-range-input">
+                                <button type="button" class="btn-add-date" onclick="addSingleBlockedDate()"><i class='bx bx-plus'></i> Add Date</button>
+                            </div>
+
+                            <span class="input-hint" style="margin-bottom:6px; display:block;">Or add a range of dates:</span>
+                            <div class="date-range-row">
+                                <input type="date" id="blocked_date_from" class="date-range-input">
+                                <span class="date-range-sep">to</span>
+                                <input type="date" id="blocked_date_to" class="date-range-input">
+                                <button type="button" class="btn-add-date" onclick="addBlockedDateRange()"><i class='bx bx-plus'></i> Add Range</button>
+                            </div>
+
+                            <div class="blocked-dates-chips" id="blocked_dates_chips"></div>
+                            <input type="hidden" name="blocked_dates" id="blocked_dates">
+                            <span class="input-hint">Pick a single date (leave "to" empty) or a date range, then click Add. Click the x on a chip to remove it.</span>
                             <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Save Booking Restrictions</button>
                         </form>
                     </div>
@@ -724,6 +850,151 @@ $blocked_dates_stmt->close();
                 icon.classList.add('bx-hide');
             }
         }
+
+        var blockedDates = <?php
+            $bd_arr = array_filter(array_map('trim', explode(',', $blocked_dates_raw)));
+            echo json_encode(array_values($bd_arr));
+        ?>;
+
+        function renderBlockedDateChips() {
+            var container = document.getElementById('blocked_dates_chips');
+            container.innerHTML = '';
+            blockedDates.forEach(function(date, index) {
+                var chip = document.createElement('span');
+                chip.className = 'date-chip';
+                chip.innerHTML = date + ' <i class="bx bx-x" onclick="removeBlockedDate(' + index + ')"></i>';
+                container.appendChild(chip);
+            });
+            document.getElementById('blocked_dates').value = blockedDates.join(',');
+        }
+
+        function addSingleBlockedDate() {
+            var input = document.getElementById('blocked_date_single');
+            var val = input.value;
+
+            if (!val) {
+                alert('Please select a date.');
+                return;
+            }
+
+            if (blockedDates.indexOf(val) === -1) {
+                blockedDates.push(val);
+            }
+
+            blockedDates.sort();
+            renderBlockedDateChips();
+            input.value = '';
+        }
+
+        function addBlockedDateRange() {
+            var fromInput = document.getElementById('blocked_date_from');
+            var toInput = document.getElementById('blocked_date_to');
+            var fromVal = fromInput.value;
+            var toVal = toInput.value || fromVal;
+
+            if (!fromVal) {
+                alert('Please select a start date.');
+                return;
+            }
+
+            var start = new Date(fromVal + 'T00:00:00');
+            var end = new Date(toVal + 'T00:00:00');
+
+            if (end < start) {
+                alert('The "to" date must be the same as or after the "from" date.');
+                return;
+            }
+
+            var current = new Date(start);
+            while (current <= end) {
+                var iso = current.toISOString().split('T')[0];
+                if (blockedDates.indexOf(iso) === -1) {
+                    blockedDates.push(iso);
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            blockedDates.sort();
+            renderBlockedDateChips();
+
+        function renderDashboardBlockedChips() {
+            var container = document.getElementById('dashboard_blocked_dates_chips');
+            var noMsg = document.getElementById('no_blocked_dates_msg');
+            if (!container) { return; }
+            container.innerHTML = '';
+
+            if (blockedDates.length === 0) {
+                noMsg.style.display = 'block';
+                return;
+            }
+            noMsg.style.display = 'none';
+
+            var sorted = blockedDates.slice().sort();
+            sorted.forEach(function(date) {
+                var chip = document.createElement('span');
+                chip.className = 'date-chip';
+                chip.innerHTML = date;
+                container.appendChild(chip);
+            });
+        }
+
+        renderDashboardBlockedChips();
+            fromInput.value = '';
+            toInput.value = '';
+        }
+
+        function removeBlockedDate(index) {
+            blockedDates.splice(index, 1);
+            renderBlockedDateChips();
+
+        function renderDashboardBlockedChips() {
+            var container = document.getElementById('dashboard_blocked_dates_chips');
+            var noMsg = document.getElementById('no_blocked_dates_msg');
+            if (!container) { return; }
+            container.innerHTML = '';
+
+            if (blockedDates.length === 0) {
+                noMsg.style.display = 'block';
+                return;
+            }
+            noMsg.style.display = 'none';
+
+            var sorted = blockedDates.slice().sort();
+            sorted.forEach(function(date) {
+                var chip = document.createElement('span');
+                chip.className = 'date-chip';
+                chip.innerHTML = date;
+                container.appendChild(chip);
+            });
+        }
+
+        renderDashboardBlockedChips();
+        }
+
+        renderBlockedDateChips();
+
+        function renderDashboardBlockedChips() {
+            var container = document.getElementById('dashboard_blocked_dates_chips');
+            var noMsg = document.getElementById('no_blocked_dates_msg');
+            if (!container) { return; }
+            container.innerHTML = '';
+
+            if (blockedDates.length === 0) {
+                noMsg.style.display = 'block';
+                return;
+            }
+            noMsg.style.display = 'none';
+
+            var sorted = blockedDates.slice().sort();
+            sorted.forEach(function(date) {
+                var chip = document.createElement('span');
+                chip.className = 'date-chip';
+                chip.innerHTML = date;
+                container.appendChild(chip);
+            });
+        }
+
+        renderDashboardBlockedChips();
 
         function filterByStatus(status) {
             dateFilterMode = null;
