@@ -70,6 +70,87 @@ foreach ($appointments as $appt) {
         .student-avatar{ width:26px; height:26px; border-radius:50%; background:#fff; color:var(--ptc-green-dark, #0f3d2a); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .student-chip-name{ font-size:13px; font-weight:600; color:#fff; white-space:nowrap; }
         .student-avatar-img{ width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(255,255,255,0.4); }
+        .profile-menu-wrapper{ position:relative; }
+        .student-chip{ cursor:pointer; border:none; }
+        .profile-chevron{ font-size:16px; margin-left:2px; transition: transform 0.15s ease; }
+        .profile-menu-wrapper.open .profile-chevron{ transform: rotate(180deg); }
+        .profile-dropdown{
+            display:none;
+            position:absolute;
+            top:calc(100% + 10px);
+            right:0;
+            background:#fff;
+            border-radius:12px;
+            box-shadow:0 10px 30px rgba(15,61,42,0.18);
+            border:1px solid var(--border-soft);
+            min-width:220px;
+            overflow:hidden;
+            z-index:200;
+        }
+        .profile-menu-wrapper.open .profile-dropdown{ display:block; }
+        .dropdown-item{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:12px 16px;
+            font-size:13.5px;
+            font-weight:600;
+            color: var(--text-dark);
+            text-decoration:none;
+            transition: background-color 0.15s ease;
+        }
+        .dropdown-item i{ font-size:17px; color: var(--ptc-green); }
+        .dropdown-item:hover{ background: var(--bg-soft); }
+        .icon-nav-btn{
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            background-color: rgba(255,255,255,0.12);
+            color:#fff;
+            border:1px solid rgba(255,255,255,0.25);
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-size:17px;
+            cursor:pointer;
+            transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .icon-nav-btn:hover{
+            background-color:#fff;
+            color: var(--ptc-green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .icon-nav-btn{ position: relative; }
+        .notif-badge{
+            position:absolute;
+            top:-2px;
+            right:-2px;
+            background:#d64545;
+            color:#fff;
+            font-size:10px;
+            font-weight:800;
+            min-width:16px;
+            height:16px;
+            border-radius:999px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:0 3px;
+            border:2px solid var(--ptc-green-dark, #0f3d2a);
+        }
+        .notif-dropdown{ width:320px; max-height:380px; display:none; flex-direction:column; }
+        .profile-menu-wrapper.open .notif-dropdown{ display:flex; }
+        .notif-header{ padding:14px 16px; font-size:13.5px; font-weight:700; color:var(--text-dark); border-bottom:1px solid var(--border-soft); }
+        .notif-list{ overflow-y:auto; max-height:320px; }
+        .notif-empty{ padding:24px 16px; text-align:center; font-size:13px; color:var(--text-muted); }
+        .notif-item{ display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border-soft); }
+        .notif-item:last-child{ border-bottom:none; }
+        .notif-item.unread{ background: rgba(32,94,68,0.05); }
+        .notif-dot{ width:8px; height:8px; border-radius:50%; background:var(--ptc-green); flex-shrink:0; margin-top:5px; }
+        .notif-item:not(.unread) .notif-dot{ background:transparent; }
+        .notif-content p{ font-size:12.5px; color:var(--text-dark); line-height:1.4; margin-bottom:3px; }
+        .notif-time{ font-size:11px; color:var(--text-muted); }
         @media (max-width:768px){ .student-chip-name{ display:none; } }
     </style>
 </head>
@@ -104,17 +185,34 @@ foreach ($appointments as $appt) {
                 </div>
             </div>
             <nav>
-                <div class="student-chip">
-                    <?php if (!empty($student_picture)): ?>
-                        <img src="images/profiles/<?= htmlspecialchars($student_picture) ?>" alt="" class="student-avatar-img">
-                    <?php else: ?>
-                        <span class="student-avatar"><?= htmlspecialchars(strtoupper(substr($_SESSION["student_name"], 0, 1))) ?></span>
-                    <?php endif; ?>
-                    <span class="student-chip-name"><?= htmlspecialchars($_SESSION["student_name"]) ?></span>
+                <div class="profile-menu-wrapper">
+                    <button class="student-chip" onclick="toggleProfileMenu(event)" type="button">
+                        <?php if (!empty($student_picture)): ?>
+                            <img src="images/profiles/<?= htmlspecialchars($student_picture) ?>" alt="" class="student-avatar-img">
+                        <?php else: ?>
+                            <span class="student-avatar"><?= htmlspecialchars(strtoupper(substr($_SESSION["student_name"], 0, 1))) ?></span>
+                        <?php endif; ?>
+                        <span class="student-chip-name"><?= htmlspecialchars($_SESSION["student_name"]) ?></span>
+                        <i class='bx bx-chevron-down profile-chevron'></i>
+                    </button>
+                    <div id="profileDropdown" class="profile-dropdown">
+                        <a href="Index.php" class="dropdown-item"><i class='bx bx-calendar-plus'></i> Book New Appointment</a>
+                        <a href="account-settings.php" class="dropdown-item"><i class='bx bx-cog'></i> Account Settings</a>
+                    </div>
                 </div>
-                <button class="nav-button" onclick="window.location.href='Index.php'"><i class='bx bx-calendar-plus'></i> Book New Appointment</button>
-                <button class="nav-button" onclick="window.location.href='account-settings.php'"><i class='bx bx-cog'></i> Account Settings</button>
-                <button class="nav-button" onclick="showLogoutConfirm()"><i class='bx bx-log-out'></i> Logout</button>
+                <div class="profile-menu-wrapper">
+                    <button class="icon-nav-btn" onclick="toggleNotifDropdown(event)" title="Notifications" type="button">
+                        <i class='bx bx-bell'></i>
+                        <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
+                    </button>
+                    <div id="notifDropdown" class="profile-dropdown notif-dropdown">
+                        <div class="notif-header">Notifications</div>
+                        <div id="notifList" class="notif-list">
+                            <div class="notif-empty">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="icon-nav-btn" onclick="showLogoutConfirm()" title="Logout"><i class='bx bx-log-out'></i></button>
             </nav>
         </header>
         <main>
@@ -276,6 +374,78 @@ foreach ($appointments as $appt) {
                 location.reload();
             }
         }
+
+        function toggleProfileMenu(event) {
+            event.stopPropagation();
+            const wrappers = document.querySelectorAll('.profile-menu-wrapper');
+            const thisWrapper = event.currentTarget.closest('.profile-menu-wrapper');
+            wrappers.forEach(w => { if (w !== thisWrapper) w.classList.remove('open'); });
+            thisWrapper.classList.toggle('open');
+        }
+        document.addEventListener('click', function (e) {
+            document.querySelectorAll('.profile-menu-wrapper').forEach(function (wrapper) {
+                if (!wrapper.contains(e.target)) {
+                    wrapper.classList.remove('open');
+                }
+            });
+        });
+
+        function timeAgo(dateStr) {
+            const seconds = Math.floor((new Date() - new Date(dateStr.replace(' ', 'T'))) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.floor(hours / 24);
+            return days + 'd ago';
+        }
+
+        function renderNotifications(data) {
+            const badge = document.getElementById('notifBadge');
+            const list = document.getElementById('notifList');
+            if (data.unread_count > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
+            } else {
+                badge.style.display = 'none';
+            }
+            if (!data.notifications || data.notifications.length === 0) {
+                list.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+                return;
+            }
+            list.innerHTML = data.notifications.map(function (n) {
+                const unreadClass = n.is_read == 0 ? 'unread' : '';
+                return '<div class="notif-item ' + unreadClass + '">' +
+                    '<div class="notif-dot"></div>' +
+                    '<div class="notif-content"><p>' + n.message.replace(/</g, '&lt;') + '</p>' +
+                    '<span class="notif-time">' + timeAgo(n.created_at) + '</span></div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function fetchNotifications() {
+            fetch('get_notifications.php')
+                .then(res => res.json())
+                .then(data => { if (data.success) renderNotifications(data); })
+                .catch(() => {});
+        }
+
+        function toggleNotifDropdown(event) {
+            event.stopPropagation();
+            const wrappers = document.querySelectorAll('.profile-menu-wrapper');
+            const thisWrapper = event.currentTarget.closest('.profile-menu-wrapper');
+            const willOpen = !thisWrapper.classList.contains('open');
+            wrappers.forEach(w => { if (w !== thisWrapper) w.classList.remove('open'); });
+            thisWrapper.classList.toggle('open');
+            if (willOpen) {
+                fetch('mark_notifications_read.php', { method: 'POST' })
+                    .then(() => fetchNotifications());
+            }
+        }
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 30000);
 
         function showLogoutConfirm() {
             document.getElementById('logoutConfirmOverlay').style.display = 'flex';
