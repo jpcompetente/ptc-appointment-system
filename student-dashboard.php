@@ -10,7 +10,21 @@ $student_id = $_SESSION["student_id"];
 $stmt = $conn->prepare("SELECT id, document_type, other_document, appointment_date, status, message FROM appointments WHERE user_id = ? ORDER BY id DESC");
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
-$appointments = $stmt->get_result();
+$appointments_result = $stmt->get_result();
+$appointments = $appointments_result->fetch_all(MYSQLI_ASSOC);
+$total_count = count($appointments);
+$pending_count = 0;
+$approved_count = 0;
+$cancelled_count = 0;
+$rejected_count = 0;
+foreach ($appointments as $appt) {
+    switch ($appt['status']) {
+        case 'pending': $pending_count++; break;
+        case 'approved': $approved_count++; break;
+        case 'cancelled': $cancelled_count++; break;
+        case 'rejected': $rejected_count++; break;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,22 +35,28 @@ $appointments = $stmt->get_result();
     <link rel="stylesheet" href="css/dashboard.css">
     <title>My Appointments | PTC Web System</title>
     <style>
-        .status-badge{ padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #fff; display: inline-block; }
-        .status-pending{ background-color: #FFC107; color: #1a2b23; }
-        .status-approved{ background-color: #2196F3; }
-        .status-rejected{ background-color: #d64545; }
-        .status-cancelled{ background-color: #9e9e9e; }
-        .cancel-btn{
-            background-color: #d64545;
-            color: #fff;
-            border: none;
+        .doc-type-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+        .doc-type-tor{ background:#FF5722; }
+        .doc-type-cog{ background:#9C27B0; }
+        .doc-type-cor{ background:#E91E63; }
+        .cancel-icon-btn{
+            display:inline-flex; align-items:center; gap:6px;
+            background: rgba(214,69,69,0.1);
+            color: #d64545;
+            border: 1px solid rgba(214,69,69,0.25);
             padding: 6px 14px;
-            border-radius: 6px;
+            border-radius: 999px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.15s ease;
         }
-        .cancel-btn:hover{ opacity: 0.85; }
+        .cancel-icon-btn:hover{ background:#d64545; color:#fff; transform: translateY(-1px); }
+        .cancel-icon-btn i{ font-size: 14px; }
+        .empty-state-row{ text-align:center !important; padding: 48px 20px !important; }
+        .empty-state-row .empty-icon{ font-size: 40px; color: var(--ptc-green, #205e44); opacity:0.5; margin-bottom: 10px; display:block; }
+        .empty-state-row a{ color: var(--ptc-green, #205e44); font-weight:700; text-decoration:none; }
+        .empty-state-row a:hover{ text-decoration:underline; }
     </style>
 </head>
 <body>
@@ -75,8 +95,23 @@ $appointments = $stmt->get_result();
             <div class="content">
                 <h2>Welcome, <?= htmlspecialchars($_SESSION["student_name"]) ?></h2>
 
+                <div class="summary-boxes-container">
+                    <div class="summary-box total-appointments">
+                        <p>Total Appointments</p>
+                        <span class="value"><?= $total_count ?></span>
+                    </div>
+                    <div class="summary-box pending-appointments">
+                        <p>Pending</p>
+                        <span class="value"><?= $pending_count ?></span>
+                    </div>
+                    <div class="summary-box approved-appointments">
+                        <p>Approved</p>
+                        <span class="value"><?= $approved_count ?></span>
+                    </div>
+                </div>
+
                 <div class="table-wrapper">
-                    <table class="table">
+                    <table class="table" id="appointments-table">
                         <thead>
                             <tr>
                                 <th>Document Type</th>
@@ -87,13 +122,24 @@ $appointments = $stmt->get_result();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($appointments->num_rows === 0): ?>
-                            <tr><td colspan="5">Wala ka pang appointment. <a href="Index.php">Mag-book na</a>.</td></tr>
+                            <?php if ($total_count === 0): ?>
+                            <tr>
+                                <td colspan="5" class="empty-state-row">
+                                    <i class='bx bx-calendar-x empty-icon'></i>
+                                    Wala ka pang appointment. <a href="Index.php">Mag-book na</a>.
+                                </td>
+                            </tr>
                             <?php endif; ?>
-                            <?php while ($row = $appointments->fetch_assoc()): ?>
+                            <?php foreach ($appointments as $row): ?>
+                            <?php
+                                $doc_type_lower = strtolower($row["document_type"]);
+                                $dot_class = 'doc-type-tor';
+                                if ($doc_type_lower === 'cog') { $dot_class = 'doc-type-cog'; }
+                                elseif ($doc_type_lower === 'cor') { $dot_class = 'doc-type-cor'; }
+                            ?>
                             <tr id="row-<?= $row['id'] ?>">
                                 <td>
-                                    <?= htmlspecialchars(strtoupper($row["document_type"])) ?>
+                                    <span class="doc-type-dot <?= $dot_class ?>"></span><?= htmlspecialchars(strtoupper($row["document_type"])) ?>
                                     <?php if (!empty($row["other_document"])): ?>
                                         (<?= htmlspecialchars($row["other_document"]) ?>)
                                     <?php endif; ?>
@@ -103,13 +149,13 @@ $appointments = $stmt->get_result();
                                 <td><?= htmlspecialchars($row["message"]) ?></td>
                                 <td>
                                     <?php if ($row["status"] === "pending"): ?>
-                                        <button class="cancel-btn" onclick="cancelAppointment(<?= $row['id'] ?>)">Cancel</button>
+                                        <button class="cancel-icon-btn" onclick="cancelAppointment(<?= $row['id'] ?>)"><i class='bx bx-x-circle'></i> Cancel</button>
                                     <?php else: ?>
                                         &mdash;
                                     <?php endif; ?>
                                 </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
