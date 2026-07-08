@@ -7,6 +7,14 @@ if (!isset($_SESSION["student_id"])) {
 }
 
 $student_id = $_SESSION["student_id"];
+
+$pic_stmt = $conn->prepare("SELECT profile_picture FROM users WHERE id = ?");
+$pic_stmt->bind_param("i", $student_id);
+$pic_stmt->execute();
+$pic_row = $pic_stmt->get_result()->fetch_assoc();
+$pic_stmt->close();
+$student_picture = $pic_row['profile_picture'] ?? null;
+
 $stmt = $conn->prepare("SELECT id, document_type, other_document, appointment_date, status, message FROM appointments WHERE user_id = ? ORDER BY id DESC");
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
@@ -61,6 +69,7 @@ foreach ($appointments as $appt) {
         .student-chip{ display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:6px 14px 6px 6px; border-radius:999px; }
         .student-avatar{ width:26px; height:26px; border-radius:50%; background:#fff; color:var(--ptc-green-dark, #0f3d2a); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .student-chip-name{ font-size:13px; font-weight:600; color:#fff; white-space:nowrap; }
+        .student-avatar-img{ width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(255,255,255,0.4); }
         @media (max-width:768px){ .student-chip-name{ display:none; } }
     </style>
 </head>
@@ -96,10 +105,15 @@ foreach ($appointments as $appt) {
             </div>
             <nav>
                 <div class="student-chip">
-                    <span class="student-avatar"><?= htmlspecialchars(strtoupper(substr($_SESSION["student_name"], 0, 1))) ?></span>
+                    <?php if (!empty($student_picture)): ?>
+                        <img src="images/profiles/<?= htmlspecialchars($student_picture) ?>" alt="" class="student-avatar-img">
+                    <?php else: ?>
+                        <span class="student-avatar"><?= htmlspecialchars(strtoupper(substr($_SESSION["student_name"], 0, 1))) ?></span>
+                    <?php endif; ?>
                     <span class="student-chip-name"><?= htmlspecialchars($_SESSION["student_name"]) ?></span>
                 </div>
                 <button class="nav-button" onclick="window.location.href='Index.php'"><i class='bx bx-calendar-plus'></i> Book New Appointment</button>
+                <button class="nav-button" onclick="window.location.href='account-settings.php'"><i class='bx bx-cog'></i> Account Settings</button>
                 <button class="nav-button" onclick="showLogoutConfirm()"><i class='bx bx-log-out'></i> Logout</button>
             </nav>
         </header>
