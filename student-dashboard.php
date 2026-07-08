@@ -68,7 +68,7 @@ $appointments = $stmt->get_result();
             </div>
             <nav>
                 <button class="nav-button" onclick="window.location.href='Index.php'">Book New Appointment</button>
-                <button class="nav-button" onclick="window.location.href='logout.php'">Logout</button>
+                <button class="nav-button" onclick="showLogoutConfirm()">Logout</button>
             </nav>
         </header>
         <main>
@@ -204,6 +204,25 @@ $appointments = $stmt->get_result();
                 location.reload();
             }
         }
+
+        function showLogoutConfirm() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'flex';
+        }
+        function closeLogoutConfirm() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'none';
+        }
     </script>
+
+    <div id="logoutConfirmOverlay" class="custom-alert-overlay" style="display:none;">
+        <div class="alert-card">
+            <div class="alert-icon-wrap"><div class="alert-icon">!</div></div>
+            <h3 class="alert-title">Log out</h3>
+            <p class="alert-message">Are you sure you want to log out?</p>
+            <div style="display:flex; gap:12px;">
+                <button class="alert-btn secondary" onclick="closeLogoutConfirm()">Stay logged in</button>
+                <button class="alert-btn" onclick="window.location.href='logout.php'">Yes, log out</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

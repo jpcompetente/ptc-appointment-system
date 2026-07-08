@@ -484,6 +484,29 @@ $blocked_dates_stmt->close();
     </style>
 </head>
 <body>
+    <div id="logoutConfirmOverlay" class="logout-alert-overlay" style="display:none;">
+        <div class="logout-alert-card">
+            <div class="logout-alert-icon-wrap"><div class="logout-alert-icon">!</div></div>
+            <h3 class="logout-alert-title">Log out</h3>
+            <p class="logout-alert-message">Are you sure you want to log out?</p>
+            <div style="display:flex; gap:12px;">
+                <button class="logout-alert-btn secondary" onclick="closeLogoutConfirm()">Stay logged in</button>
+                <button class="logout-alert-btn" onclick="confirmLogoutAdmin()">Yes, log out</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .logout-alert-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; }
+        .logout-alert-card { background:#ffffff; border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,0.15); padding:40px 36px; max-width:380px; width:90%; text-align:center; }
+        .logout-alert-icon-wrap { width:64px; height:64px; border-radius:50%; background:#fde2e1; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+        .logout-alert-icon { width:36px; height:36px; border-radius:50%; background:#f24236; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:20px; }
+        .logout-alert-title { font-size:20px; font-weight:600; color:#1f2937; margin:0 0 8px; }
+        .logout-alert-message { font-size:14px; color:#6b7280; margin:0 0 28px; line-height:1.5; }
+        .logout-alert-btn { background:#f24236; color:#fff; border:none; padding:12px 32px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; width:100%; }
+        .logout-alert-btn:hover { background:#d93a30; }
+        .logout-alert-btn.secondary { background:#e5e7eb; color:#374151; }
+        .logout-alert-btn.secondary:hover { background:#d1d5db; }
+    </style>
     <div class="app-shell">
         <header>
             <div class="logo-container">
@@ -845,7 +868,13 @@ $blocked_dates_stmt->close();
         }
 
         function logout() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'flex';
+        }
+        function confirmLogoutAdmin() {
             window.location.href = 'logout.php?type=admin';
+        }
+        function closeLogoutConfirm() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'none';
         }
 
         function togglePassword(id, icon) {

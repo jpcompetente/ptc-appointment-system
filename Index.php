@@ -104,6 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .custom-alert-overlay .alert-message { font-size:14px; color:#6b7280; margin:0 0 28px; line-height:1.5; }
         .custom-alert-overlay .alert-btn { background:#f24236; color:#fff; border:none; padding:12px 32px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; width:100%; }
         .custom-alert-overlay .alert-btn:hover { background:#d93a30; }
+        .custom-alert-overlay .alert-btn.secondary { background:#e5e7eb; color:#374151; }
+        .custom-alert-overlay .alert-btn.secondary:hover { background:#d1d5db; }
         .custom-alert-overlay .alert-icon-wrap.success { background:#d7f5e9; }
         .custom-alert-overlay .alert-icon.success { background:#22b573; }
         .custom-alert-overlay .alert-btn.success { background:#22b573; }
@@ -132,6 +134,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     <?php unset($_SESSION['booking_success']); endif; ?>
 
+    <div id="logoutConfirmOverlay" class="custom-alert-overlay" style="display:none;">
+        <div class="alert-card">
+            <div class="alert-icon-wrap"><div class="alert-icon">!</div></div>
+            <h3 class="alert-title">Log out</h3>
+            <p class="alert-message">Are you sure you want to log out?</p>
+            <div style="display:flex; gap:12px;">
+                <button class="alert-btn secondary" onclick="closeLogoutConfirm()">Stay logged in</button>
+                <button class="alert-btn" onclick="window.location.href='logout.php'">Yes, log out</button>
+            </div>
+        </div>
+    </div>
+
     <div class="main">
 
         <div class="navbar">
@@ -141,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <span id="scroll" class="item">Get an Appointment</span>
                 <?php if ($is_logged_in): ?>
                 <a href="student-dashboard.php" class="item" style="text-decoration:none;">My Appointments</a>
-                <a href="logout.php" class="item" style="text-decoration:none;">Logout</a>
+                <a href="#" class="item" style="text-decoration:none;" onclick="showLogoutConfirm(); return false;">Logout</a>
                 <?php else: ?>
                 <a href="student-auth.php" class="item" style="text-decoration:none;">Login / Sign up</a>
                 <?php endif; ?>
@@ -281,6 +295,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
 
             document.getElementById("year").textContent = new Date().getFullYear();
+
+            function showLogoutConfirm() {
+                document.getElementById('logoutConfirmOverlay').style.display = 'flex';
+            }
+            function closeLogoutConfirm() {
+                document.getElementById('logoutConfirmOverlay').style.display = 'none';
+            }
         </script>
         <script src="js/Index.js"></script>
     </div>
