@@ -65,6 +65,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         show_custom_alert("Puno na ang slots para sa napiling araw. Pumili ng ibang date.");
     }
 
+    // Check if the student already has a pending/approved request for the same document type
+    $dup_stmt = $conn->prepare("SELECT id FROM appointments WHERE user_id = ? AND document_type = ? AND status IN ('pending', 'approved') LIMIT 1");
+    $dup_stmt->bind_param("is", $user_id, $docs);
+    $dup_stmt->execute();
+    $dup_result = $dup_stmt->get_result();
+    $has_duplicate = $dup_result->fetch_assoc();
+    $dup_stmt->close();
+
+    if ($has_duplicate) {
+        show_custom_alert("You already have a pending or approved request for " . strtoupper($docs) . ". Please wait for it or cancel it before booking again.");
+    }
+
     $stmt = $conn->prepare("INSERT INTO appointments (user_id, name, email, phone, appointment_date, document_type, other_document, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
     if ($stmt === false) {
         die('Could not prepare statement: ' . $conn->error);
