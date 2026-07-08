@@ -57,6 +57,11 @@ foreach ($appointments as $appt) {
         .empty-state-row .empty-icon{ font-size: 40px; color: var(--ptc-green, #205e44); opacity:0.5; margin-bottom: 10px; display:block; }
         .empty-state-row a{ color: var(--ptc-green, #205e44); font-weight:700; text-decoration:none; }
         .empty-state-row a:hover{ text-decoration:underline; }
+        .header-subtitle{ font-size:12px; font-weight:500; color:rgba(255,255,255,0.75); margin-top:2px; letter-spacing:0.2px; }
+        .student-chip{ display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:6px 14px 6px 6px; border-radius:999px; }
+        .student-avatar{ width:26px; height:26px; border-radius:50%; background:#fff; color:var(--ptc-green-dark, #0f3d2a); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .student-chip-name{ font-size:13px; font-weight:600; color:#fff; white-space:nowrap; }
+        @media (max-width:768px){ .student-chip-name{ display:none; } }
     </style>
 </head>
 <body>
@@ -84,11 +89,18 @@ foreach ($appointments as $appt) {
         <header>
             <div class="logo-container">
                 <img src="images/logo-ptc 2.png" alt="Logo">
-                <h1>Pateros Technological College</h1>
+                <div>
+                    <h1>Pateros Technological College</h1>
+                    <p class="header-subtitle">Student Appointment Portal</p>
+                </div>
             </div>
             <nav>
-                <button class="nav-button" onclick="window.location.href='Index.php'">Book New Appointment</button>
-                <button class="nav-button" onclick="showLogoutConfirm()">Logout</button>
+                <div class="student-chip">
+                    <span class="student-avatar"><?= htmlspecialchars(strtoupper(substr($_SESSION["student_name"], 0, 1))) ?></span>
+                    <span class="student-chip-name"><?= htmlspecialchars($_SESSION["student_name"]) ?></span>
+                </div>
+                <button class="nav-button" onclick="window.location.href='Index.php'"><i class='bx bx-calendar-plus'></i> Book New Appointment</button>
+                <button class="nav-button" onclick="showLogoutConfirm()"><i class='bx bx-log-out'></i> Logout</button>
             </nav>
         </header>
         <main>
