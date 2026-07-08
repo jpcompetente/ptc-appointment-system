@@ -1,12 +1,13 @@
 ﻿<?php
 require_once "config.php";
 
-if (!isset($_SESSION["student_id"])) {
-    header("Location: student-auth.php");
-    exit;
-}
+$is_logged_in = isset($_SESSION["student_id"]);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!$is_logged_in) {
+        header("Location: student-auth.php");
+        exit;
+    }
 
     $user_id = $_SESSION["student_id"];
     $name = $_POST['name'];
@@ -17,6 +18,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $otherDoc = isset($_POST['otherDoc']) ? $_POST['otherDoc'] : '';
     $message = $_POST['message'];
 
+    // Reusable styled alert modal (replaces plain browser alert())
+    function show_custom_alert($message, $redirect = 'Index.php') {
+        $_SESSION['booking_alert'] = $message;
+        header("Location: " . $redirect);
+        exit();
+    }
+    // Check if the selected date is blocked
+    $blocked_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'blocked_dates'");
+    $blocked_stmt->execute();
+    $blocked_result = $blocked_stmt->get_result()->fetch_assoc();
+    $blocked_dates_raw = $blocked_result ? $blocked_result['setting_value'] : '';
+    $blocked_dates_arr = array_filter(array_map('trim', explode(',', $blocked_dates_raw)));
+    $blocked_stmt->close();
+    if (in_array($date, $blocked_dates_arr)) {
+        show_custom_alert("This date is not available for appointments. Please choose another date.");
+    }
+    // Check if the selected day of the week is allowed
+    $days_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'allowed_days'");
+    $days_stmt->execute();
+    $days_result = $days_stmt->get_result()->fetch_assoc();
+    $allowed_days_raw = $days_result ? $days_result['setting_value'] : 'Mon,Tue,Wed,Thu,Fri';
+    $allowed_days_arr = array_filter(array_map('trim', explode(',', $allowed_days_raw)));
+    $days_stmt->close();
+    $day_abbr_map = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    $selected_day_index = date('N', strtotime($date)) - 1;
+    $selected_day_abbr = $day_abbr_map[$selected_day_index];
+    if (!in_array($selected_day_abbr, $allowed_days_arr)) {
+        show_custom_alert("Appointments are not accepted on this day of the week. Please choose an allowed day.");
+    }
     // Check slot limit for the selected date
     $limit_stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'max_appointments_per_day'");
     $limit_stmt->execute();
@@ -32,8 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $count_stmt->close();
 
     if ($current_count >= $max_per_day) {
-        echo '<script>alert("Puno na ang slots para sa napiling araw. Pumili ng ibang date."); window.location.href = "Index.php";</script>';
-        exit();
+        show_custom_alert("Puno na ang slots para sa napiling araw. Pumili ng ibang date.");
     }
 
     $stmt = $conn->prepare("INSERT INTO appointments (user_id, name, email, phone, appointment_date, document_type, other_document, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
@@ -43,7 +72,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $stmt->bind_param("isssssss", $user_id, $name, $email, $phone, $date, $docs, $otherDoc, $message);
     if ($stmt->execute()) {
-        echo '<script>alert("Appointment submitted successfully!"); window.location.href = "student-dashboard.php";</script>';
+        $_SESSION['booking_success'] = "Appointment submitted successfully!";
+        header("Location: Index.php");
         exit();
     } else {
         echo "Error: " . $stmt->error;
@@ -65,6 +95,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <body>
 
+    <style>
+        .custom-alert-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; }
+        .custom-alert-overlay .alert-card { background:#ffffff; border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,0.15); padding:40px 36px; max-width:380px; width:90%; text-align:center; }
+        .custom-alert-overlay .alert-icon-wrap { width:64px; height:64px; border-radius:50%; background:#fde2e1; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+        .custom-alert-overlay .alert-icon { width:36px; height:36px; border-radius:50%; background:#f24236; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:20px; }
+        .custom-alert-overlay .alert-title { font-size:20px; font-weight:600; color:#1f2937; margin:0 0 8px; }
+        .custom-alert-overlay .alert-message { font-size:14px; color:#6b7280; margin:0 0 28px; line-height:1.5; }
+        .custom-alert-overlay .alert-btn { background:#f24236; color:#fff; border:none; padding:12px 32px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; width:100%; }
+        .custom-alert-overlay .alert-btn:hover { background:#d93a30; }
+        .custom-alert-overlay .alert-icon-wrap.success { background:#d7f5e9; }
+        .custom-alert-overlay .alert-icon.success { background:#22b573; }
+        .custom-alert-overlay .alert-btn.success { background:#22b573; }
+        .custom-alert-overlay .alert-btn.success:hover { background:#1c9760; }
+    </style>
+
+    <?php if (isset($_SESSION['booking_alert'])): ?>
+    <div class="custom-alert-overlay">
+        <div class="alert-card">
+            <div class="alert-icon-wrap"><div class="alert-icon">!</div></div>
+            <h3 class="alert-title">Booking not allowed</h3>
+            <p class="alert-message"><?php echo htmlspecialchars($_SESSION['booking_alert']); ?></p>
+            <button class="alert-btn" onclick="document.querySelector('.custom-alert-overlay').style.display='none'">OK</button>
+        </div>
+    </div>
+    <?php unset($_SESSION['booking_alert']); endif; ?>
+
+    <?php if (isset($_SESSION['booking_success'])): ?>
+    <div class="custom-alert-overlay">
+        <div class="alert-card success">
+            <div class="alert-icon-wrap success"><div class="alert-icon success"><i class='bx bx-check'></i></div></div>
+            <h3 class="alert-title">Success</h3>
+            <p class="alert-message"><?php echo htmlspecialchars($_SESSION['booking_success']); ?></p>
+            <button class="alert-btn success" onclick="document.querySelector('.custom-alert-overlay').style.display='none'">OK</button>
+        </div>
+    </div>
+    <?php unset($_SESSION['booking_success']); endif; ?>
+
     <div class="main">
 
         <div class="navbar">
@@ -72,8 +139,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="nav-links">
                 <span class="item selected">Home</span>
                 <span id="scroll" class="item">Get an Appointment</span>
+                <?php if ($is_logged_in): ?>
                 <a href="student-dashboard.php" class="item" style="text-decoration:none;">My Appointments</a>
                 <a href="logout.php" class="item" style="text-decoration:none;">Logout</a>
+                <?php else: ?>
+                <a href="student-auth.php" class="item" style="text-decoration:none;">Login / Sign up</a>
+                <?php endif; ?>
 
             </div>
             <button class="toggler">

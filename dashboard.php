@@ -606,9 +606,19 @@ $blocked_dates_stmt->close();
                 </div>
 
                 <p class="section-label">Blocked Dates</p>
-                <div class="table-card blocked-dates-card">
-                    <div class="blocked-dates-chips" id="dashboard_blocked_dates_chips" style="margin-bottom:0;"></div>
-                    <p class="page-subtext" id="no_blocked_dates_msg" style="display:none; margin:0;">No blocked dates set. You can add holidays in Settings &rarr; Booking Restrictions.</p>
+                <div class="blocked-dates-card-v2">
+                    <div class="blocked-dates-header">
+                        <div class="blocked-dates-icon"><i class='bx bx-calendar-x'></i></div>
+                        <div>
+                            <h3>Upcoming Holidays &amp; Blocked Days</h3>
+                            <p id="blocked_dates_count_text">No dates blocked yet.</p>
+                        </div>
+                    </div>
+                    <div class="blocked-dates-chips-v2" id="dashboard_blocked_dates_chips"></div>
+                    <div class="no-blocked-dates-empty" id="no_blocked_dates_msg" style="display:none;">
+                        <i class='bx bx-calendar-check'></i>
+                        <span>No blocked dates set. You can add holidays in Settings &rarr; Booking Restrictions.</span>
+                    </div>
                 </div>
             </div>
             <div id="appointments" class="content" style="display:none;">
@@ -920,20 +930,35 @@ $blocked_dates_stmt->close();
         function renderDashboardBlockedChips() {
             var container = document.getElementById('dashboard_blocked_dates_chips');
             var noMsg = document.getElementById('no_blocked_dates_msg');
+            var countText = document.getElementById('blocked_dates_count_text');
             if (!container) { return; }
             container.innerHTML = '';
 
             if (blockedDates.length === 0) {
-                noMsg.style.display = 'block';
+                noMsg.style.display = 'flex';
+                if (countText) countText.textContent = 'No dates blocked yet.';
                 return;
             }
             noMsg.style.display = 'none';
 
             var sorted = blockedDates.slice().sort();
+            var today = new Date();
+            today.setHours(0,0,0,0);
+
+            if (countText) {
+                countText.textContent = sorted.length + (sorted.length === 1 ? ' date is currently blocked.' : ' dates are currently blocked.');
+            }
+
+            var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
             sorted.forEach(function(date) {
+                var d = new Date(date + 'T00:00:00');
+                var isPast = d < today;
+                var label = monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+
                 var chip = document.createElement('span');
-                chip.className = 'date-chip';
-                chip.innerHTML = date;
+                chip.className = 'date-chip-v2' + (isPast ? ' past' : '');
+                chip.innerHTML = '<i class="bx bx-calendar"></i>' + label;
                 container.appendChild(chip);
             });
         }
@@ -950,20 +975,35 @@ $blocked_dates_stmt->close();
         function renderDashboardBlockedChips() {
             var container = document.getElementById('dashboard_blocked_dates_chips');
             var noMsg = document.getElementById('no_blocked_dates_msg');
+            var countText = document.getElementById('blocked_dates_count_text');
             if (!container) { return; }
             container.innerHTML = '';
 
             if (blockedDates.length === 0) {
-                noMsg.style.display = 'block';
+                noMsg.style.display = 'flex';
+                if (countText) countText.textContent = 'No dates blocked yet.';
                 return;
             }
             noMsg.style.display = 'none';
 
             var sorted = blockedDates.slice().sort();
+            var today = new Date();
+            today.setHours(0,0,0,0);
+
+            if (countText) {
+                countText.textContent = sorted.length + (sorted.length === 1 ? ' date is currently blocked.' : ' dates are currently blocked.');
+            }
+
+            var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
             sorted.forEach(function(date) {
+                var d = new Date(date + 'T00:00:00');
+                var isPast = d < today;
+                var label = monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+
                 var chip = document.createElement('span');
-                chip.className = 'date-chip';
-                chip.innerHTML = date;
+                chip.className = 'date-chip-v2' + (isPast ? ' past' : '');
+                chip.innerHTML = '<i class="bx bx-calendar"></i>' + label;
                 container.appendChild(chip);
             });
         }
@@ -976,20 +1016,35 @@ $blocked_dates_stmt->close();
         function renderDashboardBlockedChips() {
             var container = document.getElementById('dashboard_blocked_dates_chips');
             var noMsg = document.getElementById('no_blocked_dates_msg');
+            var countText = document.getElementById('blocked_dates_count_text');
             if (!container) { return; }
             container.innerHTML = '';
 
             if (blockedDates.length === 0) {
-                noMsg.style.display = 'block';
+                noMsg.style.display = 'flex';
+                if (countText) countText.textContent = 'No dates blocked yet.';
                 return;
             }
             noMsg.style.display = 'none';
 
             var sorted = blockedDates.slice().sort();
+            var today = new Date();
+            today.setHours(0,0,0,0);
+
+            if (countText) {
+                countText.textContent = sorted.length + (sorted.length === 1 ? ' date is currently blocked.' : ' dates are currently blocked.');
+            }
+
+            var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
             sorted.forEach(function(date) {
+                var d = new Date(date + 'T00:00:00');
+                var isPast = d < today;
+                var label = monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+
                 var chip = document.createElement('span');
-                chip.className = 'date-chip';
-                chip.innerHTML = date;
+                chip.className = 'date-chip-v2' + (isPast ? ' past' : '');
+                chip.innerHTML = '<i class="bx bx-calendar"></i>' + label;
                 container.appendChild(chip);
             });
         }
