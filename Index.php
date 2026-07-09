@@ -101,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="css/Index.css?v=2">
+    <link rel="stylesheet" href="css/Index.css?v=<?php echo time(); ?>">
     <title>PTC Web System | Appointment &amp; Queuing</title>
 </head>
 
@@ -289,7 +289,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </section>
 
         <footer class="main-footer">
-            <p>&copy; <span id="year"></span> Pateros Technological College — Registrar's Office</p>
+            <p>&copy; <span id="year"></span> Pateros Technological College - Registrar's Office</p>
         </footer>
 
         <script>

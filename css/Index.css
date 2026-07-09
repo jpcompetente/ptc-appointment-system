@@ -31,7 +31,17 @@ body{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 0;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15, 61, 42, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin: 0 -88px;
+    padding-left: 88px;
+    padding-right: 88px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .navbar .logo{
@@ -54,6 +64,7 @@ body{
     color: rgba(255,255,255,0.75);
     cursor: pointer;
     transition: color 0.2s;
+    position: relative;
 }
 
 .navbar .item:hover{
@@ -154,6 +165,12 @@ body{
     background: rgba(255,255,255,0.06);
     border-radius: 1.2rem;
     max-width: 480px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.top-container .nft-box:hover{
+    transform: translateY(-6px);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.4);
 }
 
 .top-container .nft-pic{
@@ -252,6 +269,12 @@ body{
     border-radius: 1.4rem;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     background: rgba(255, 255, 255, 0.95);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: default;
+}
+.get-started .item-container:hover .item{
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
 }
 
 .get-started .items-box .item-container .item .bx{
@@ -422,4 +445,33 @@ textarea.form-control{
     .booking-form{
         padding: 28px 22px;
     }
+}
+
+/* ===== Decorative Background Glow ===== */
+.main{
+    isolation: isolate;
+}
+.main::before{
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+}
+.main::after{
+    content: '';
+    position: absolute;
+    top: 250px;
+    left: -200px;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
 }
