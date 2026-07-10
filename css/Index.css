@@ -475,3 +475,62 @@ textarea.form-control{
     z-index: -1;
     pointer-events: none;
 }
+
+/* ===== Input Icon Groups ===== */
+.input-icon-group{
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-icon-group i{
+    position: absolute;
+    left: 14px;
+    font-size: 18px;
+    color: var(--text-muted);
+    pointer-events: none;
+    z-index: 1;
+}
+.input-icon-group .form-control{
+    padding-left: 42px;
+}
+.input-icon-group-textarea i{
+    top: 14px;
+    transform: none;
+}
+.input-icon-group select.form-control{
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7d74' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+}
+.input-icon-group:focus-within i{
+    color: var(--ptc-green);
+}
+
+/* ===== Submit Button Polish ===== */
+#submit-button{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+#submit-button:hover{
+    box-shadow: 0 10px 24px rgba(15,61,42,0.25);
+}
+
+/* ===== Booking Form Card Accent ===== */
+.booking-form{
+    position: relative;
+}
+.booking-form::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--ptc-green-dark), var(--ptc-green-light));
+    border-radius: 16px 16px 0 0;
+}

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once "config.php";
 
 $is_logged_in = isset($_SESSION["student_id"]);
