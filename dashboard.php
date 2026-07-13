@@ -481,6 +481,112 @@ $blocked_dates_stmt->close();
         .blocked-dates-card {
             padding: 20px !important;
         }
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 0 20px 20px;
+            flex-wrap: wrap;
+        }
+        .settings-tab-btn {
+            background: #fff;
+            border: 1.5px solid var(--border-soft, #e1e6e3);
+            color: var(--text-muted, #6b7d74);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .settings-tab-btn:hover {
+            border-color: var(--ptc-green, #205e44);
+            color: var(--ptc-green, #205e44);
+        }
+        .settings-tab-btn.active {
+            background: var(--ptc-green, #205e44);
+            color: #fff;
+            border-color: var(--ptc-green, #205e44);
+        }
+        .settings-grid .settings-card { display: none; }
+        .settings-grid .settings-card.active-tab { display: flex; }
+        .settings-grid {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .settings-launcher {
+            position: absolute;
+            top: 66px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 18px 45px rgba(15, 61, 42, 0.22), 0 4px 12px rgba(15,61,42,0.1);
+            padding: 18px;
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .settings-launcher.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .settings-launcher-header {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted, #6b7d74);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            padding: 0 4px;
+        }
+        .settings-launcher-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .launcher-tile {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 4px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.15s ease;
+        }
+        .launcher-tile:hover {
+            background-color: #f4f7f5;
+            transform: translateY(-2px);
+        }
+        .launcher-tile-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .launcher-tile-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dark, #1a2b23);
+            text-align: center;
+            line-height: 1.3;
+        }
+        header {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -516,10 +622,27 @@ $blocked_dates_stmt->close();
             <nav>
                 <button class="nav-button" onclick="showDashboard()"><i class='bx bx-grid-alt'></i> Dashboard</button>
                 <button class="nav-button" onclick="showAppointments()"><i class='bx bx-calendar-check'></i> Appointments</button>
-                <button class="nav-button" onclick="showSettings()"><i class='bx bx-cog'></i> Settings</button>
+                <button class="nav-button" id="settingsNavBtn" onclick="toggleSettingsMenu(event)"><i class='bx bx-cog'></i> Settings</button>
                 <button class="nav-button" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
             </nav>
         </header>
+        <div class="settings-launcher" id="settingsLauncher">
+            <div class="settings-launcher-header">Settings</div>
+            <div class="settings-launcher-grid">
+                <button type="button" class="launcher-tile" onclick="openSettingsTab('maxappt')">
+                    <span class="launcher-tile-icon" style="background:rgba(32,94,68,0.12); color:#205e44;"><i class='bx bx-calendar-check'></i></span>
+                    <span class="launcher-tile-label">Max Appointments</span>
+                </button>
+                <button type="button" class="launcher-tile" onclick="openSettingsTab('booking')">
+                    <span class="launcher-tile-icon" style="background:rgba(33,150,243,0.12); color:#2196F3;"><i class='bx bx-calendar-week'></i></span>
+                    <span class="launcher-tile-label">Booking Restrictions</span>
+                </button>
+                <button type="button" class="launcher-tile" onclick="openSettingsTab('security')">
+                    <span class="launcher-tile-icon" style="background:rgba(214,69,69,0.12); color:#d64545;"><i class='bx bx-shield-quarter'></i></span>
+                    <span class="launcher-tile-label">Account Security</span>
+                </button>
+            </div>
+        </div>
         <main>
             <div id="dashboard" class="content">
                 <div class="dashboard-hero-banner">
@@ -713,9 +836,9 @@ $blocked_dates_stmt->close();
                 <?php if ($settings_message): ?>
                     <div class="settings-success"><i class='bx bx-check-circle'></i> <?= htmlspecialchars($settings_message) ?></div>
                 <?php endif; ?>
-
+                
                 <div class="settings-grid">
-                    <div class="settings-card">
+                    <div class="settings-card active-tab" id="settings-card-maxappt">
                         <div class="settings-card-header">
                             <div class="settings-card-icon" style="background:rgba(32,94,68,0.12); color:#205e44;"><i class='bx bx-calendar-check'></i></div>
                             <div>
@@ -732,7 +855,7 @@ $blocked_dates_stmt->close();
                         </form>
                     </div>
 
-                    <div class="settings-card">
+                    <div class="settings-card" id="settings-card-booking">
                         <div class="settings-card-header">
                             <div class="settings-card-icon" style="background:rgba(33,150,243,0.12); color:#2196F3;"><i class='bx bx-calendar-week'></i></div>
                             <div>
@@ -777,7 +900,7 @@ $blocked_dates_stmt->close();
                         </form>
                     </div>
 
-                    <div class="settings-card">
+                    <div class="settings-card" id="settings-card-security">
                         <div class="settings-card-header">
                             <div class="settings-card-icon" style="background:rgba(214,69,69,0.12); color:#d64545;"><i class='bx bx-shield-quarter'></i></div>
                             <div>
@@ -812,7 +935,6 @@ $blocked_dates_stmt->close();
                         </form>
                     </div>
                 </div>
-            </div>
         </main>
     </div>
 
@@ -867,6 +989,39 @@ $blocked_dates_stmt->close();
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('appointments').style.display = 'none';
             document.getElementById('settings').style.display = 'block';
+        }
+
+        function toggleSettingsMenu(e) {
+            e.stopPropagation();
+            document.getElementById('settingsLauncher').classList.toggle('open');
+        }
+
+        function closeSettingsMenu() {
+            document.getElementById('settingsLauncher').classList.remove('open');
+        }
+
+        function openSettingsTab(tabName) {
+            showSettings();
+            showSettingsTab(tabName);
+            closeSettingsMenu();
+        }
+
+        document.addEventListener('click', function(e) {
+            var menu = document.getElementById('settingsLauncher');
+            var btn = document.getElementById('settingsNavBtn');
+            if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                closeSettingsMenu();
+            }
+        });        function showSettingsTab(tabName) {
+            var tabs = ["maxappt", "booking", "security"];
+            tabs.forEach(function(name) {
+                var card = document.getElementById("settings-card-" + name);
+                if (name === tabName) {
+                    card.classList.add("active-tab");
+                } else {
+                    card.classList.remove("active-tab");
+                }
+            });
         }
 
         function logout() {
