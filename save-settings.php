@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->execute();
     $stmt->close();
 
-    if (isset($_POST["allowed_days"])) {
+    if (isset($_POST["allowed_days"]) && count($_POST["allowed_days"]) > 0) {
         $allowed_days_arr = array_map('trim', $_POST["allowed_days"]);
         $allowed_days_str = implode(',', $allowed_days_arr);
 

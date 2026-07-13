@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once "config.php";
 
 if (!isset($_SESSION['admin_id'])) {
@@ -725,7 +725,8 @@ $blocked_dates_stmt->close();
                         </div>
                         <form method="POST" action="save-settings.php">
                             <label for="max_appointments_per_day">Maximum Slots</label>
-                            <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" value="<?= htmlspecialchars($max_per_day) ?>" required>
+                            <input type="number" name="max_appointments_per_day" id="max_appointments_per_day" min="1" max="200" value="<?= htmlspecialchars($max_per_day) ?>" required>
+                            <p class="input-hint">Enter a number between 1 and 200.</p>
                             <br>
                             <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Save Setting</button>
                         </form>
@@ -798,15 +799,16 @@ $blocked_dates_stmt->close();
                             </div>
                             <label for="new_password">New Password</label>
                             <div class="input-icon-wrapper">
-                                <input type="password" name="new_password" id="new_password" minlength="8" required>
+                                <input type="password" name="new_password" id="new_password" minlength="8" required onkeyup="checkPasswordMatch()">
                                 <i class='bx bx-hide toggle-password' onclick="togglePassword('new_password', this)"></i>
                             </div>
                             <label for="confirm_password">Confirm New Password</label>
                             <div class="input-icon-wrapper">
-                                <input type="password" name="confirm_password" id="confirm_password" minlength="8" required>
+                                <input type="password" name="confirm_password" id="confirm_password" minlength="8" required onkeyup="checkPasswordMatch()">
                                 <i class='bx bx-hide toggle-password' onclick="togglePassword('confirm_password', this)"></i>
                             </div>
-                            <button type="submit" class="btn-primary"><i class='bx bx-lock-alt'></i> Change Password</button>
+                            <p id="pw_match_msg" class="pw-match-msg"></p>
+                            <button type="submit" class="btn-primary" id="change_pw_btn"><i class='bx bx-lock-alt'></i> Change Password</button>
                         </form>
                     </div>
                 </div>
@@ -890,6 +892,27 @@ $blocked_dates_stmt->close();
             }
         }
 
+        function checkPasswordMatch() {
+            var newPw = document.getElementById('new_password').value;
+            var confirmPw = document.getElementById('confirm_password').value;
+            var msg = document.getElementById('pw_match_msg');
+            var btn = document.getElementById('change_pw_btn');
+            if (confirmPw === '') {
+                msg.className = 'pw-match-msg';
+                msg.textContent = '';
+                btn.disabled = false;
+                return;
+            }
+            if (newPw === confirmPw) {
+                msg.className = 'pw-match-msg show ok';
+                msg.textContent = 'Passwords match.';
+                btn.disabled = false;
+            } else {
+                msg.className = 'pw-match-msg show error';
+                msg.textContent = 'Passwords do not match.';
+                btn.disabled = true;
+            }
+        }
         var blockedDates = <?php
             $bd_arr = array_filter(array_map('trim', explode(',', $blocked_dates_raw)));
             echo json_encode(array_values($bd_arr));
@@ -898,15 +921,26 @@ $blocked_dates_stmt->close();
         function renderBlockedDateChips() {
             var container = document.getElementById('blocked_dates_chips');
             container.innerHTML = '';
+            var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var today = new Date();
+            today.setHours(0,0,0,0);
             blockedDates.forEach(function(date, index) {
+                var d = new Date(date + 'T00:00:00');
+                var isPast = d < today;
+                var label = monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
                 var chip = document.createElement('span');
-                chip.className = 'date-chip';
-                chip.innerHTML = date + ' <i class="bx bx-x" onclick="removeBlockedDate(' + index + ')"></i>';
+                chip.className = 'date-chip' + (isPast ? ' past' : '');
+                chip.innerHTML = '<i class="bx bx-calendar"></i> ' + label + ' <i class="bx bx-x" onclick="confirmRemoveBlockedDate(' + index + ')"></i>';
                 container.appendChild(chip);
             });
             document.getElementById('blocked_dates').value = blockedDates.join(',');
         }
 
+        function confirmRemoveBlockedDate(index) {
+            if (confirm('Remove this blocked date?')) {
+                removeBlockedDate(index);
+            }
+        }
         function addSingleBlockedDate() {
             var input = document.getElementById('blocked_date_single');
             var val = input.value;
