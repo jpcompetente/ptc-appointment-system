@@ -185,6 +185,8 @@ $stmt->close();
         .custom-alert-overlay .alert-btn:hover { background:#d93a30; }
         .custom-alert-overlay .alert-btn.success { background:#22b573; }
         .custom-alert-overlay .alert-btn.success:hover { background:#1c9760; }
+        .custom-alert-overlay .alert-btn.secondary { background:#e5e7eb; color:#374151; }
+        .custom-alert-overlay .alert-btn.secondary:hover { background:#d1d5db; }
 
         .settings-card{
             background:#fff;
@@ -313,7 +315,7 @@ $stmt->close();
             </div>
             <nav>
                 <button class="nav-button" onclick="window.location.href='student-dashboard.php'"><i class='bx bx-arrow-back'></i> Back to Dashboard</button>
-                <button class="nav-button" onclick="window.location.href='logout.php'"><i class='bx bx-log-out'></i> Logout</button>
+                <button class="nav-button" onclick="showLogoutConfirm()"><i class='bx bx-log-out'></i> Logout</button>
             </nav>
         </header>
         <main>
@@ -382,6 +384,27 @@ $stmt->close();
             </div>
         </main>
     </div>
+
+    <div id="logoutConfirmOverlay" class="custom-alert-overlay" style="display:none;">
+        <div class="alert-card">
+            <div class="alert-icon-wrap"><div class="alert-icon">!</div></div>
+            <h3 class="alert-title">Log out</h3>
+            <p class="alert-message">Are you sure you want to log out?</p>
+            <div style="display:flex; gap:12px;">
+                <button class="alert-btn secondary" onclick="closeLogoutConfirm()">Stay logged in</button>
+                <button class="alert-btn" onclick="window.location.href='logout.php'">Yes, log out</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLogoutConfirm() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'flex';
+        }
+        function closeLogoutConfirm() {
+            document.getElementById('logoutConfirmOverlay').style.display = 'none';
+        }
+    </script>
 
 </body>
 </html>
